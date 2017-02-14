@@ -27,3 +27,8 @@
 *.exe
 *.out
 *.app
+Binaries
+Intermediate
+Saved
+/CodeBlue.VC.db
+/CodeBlue.VC.VC.opendb
