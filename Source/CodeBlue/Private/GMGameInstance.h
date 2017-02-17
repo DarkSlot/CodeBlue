@@ -15,6 +15,7 @@ class UGMGameInstance : public UGameInstance
 	GENERATED_BODY()
 public:
 	UGMGameInstance();
+	virtual ~UGMGameInstance();
 
 	ProductLocalizationList *ProductLocalizationList;
 	

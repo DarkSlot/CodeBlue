@@ -3,3 +3,5 @@
 #include "CodeBlue.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, CodeBlue, "CodeBlue" );
+
+DEFINE_LOG_CATEGORY(CodeBlueLog)

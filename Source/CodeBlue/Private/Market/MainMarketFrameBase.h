@@ -16,10 +16,20 @@ class UMainMarketFrameBase : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Market")
-		void UpdateList(FName MarketName);
+	void UpdateList(FName MarketName);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
-		void AddProductMenuItem(const FText &ProductName);
+	void ClearOrderList();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
+	void AddProductMenuItem(const FText &ProductName,const int32 ProductId);
 	
-	
+	UFUNCTION(BlueprintCallable, Category = "Market")
+	void UpdateOrderList(const int32 order);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
+	void AddSellOrderItem(const float price,const int32 stock);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
+	void AddBuyOrderItem(const float price, const int32 stock);
 };
