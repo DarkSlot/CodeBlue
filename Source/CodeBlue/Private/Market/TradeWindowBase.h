@@ -1,0 +1,21 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "Blueprint/UserWidget.h"
+#include "TradeWindowBase.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class UTradeWindowBase : public UUserWidget
+{
+	GENERATED_BODY()
+public:
+	UFUNCTION(BlueprintCallable, Category = "Market")
+	void UpdateTradeWindow(const int32 ProductId,const bool IsBuyWindow);
+	
+	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
+	void InitTradeWindow(const FText &ProductName,const float AdvisePrice);
+};

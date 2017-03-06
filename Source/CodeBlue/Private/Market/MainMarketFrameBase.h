@@ -14,7 +14,10 @@ class UMainMarketFrameBase : public UUserWidget
 	GENERATED_BODY()
 	
 
-public:
+public:	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Market")
+	int32 CurrentProductId;
+
 	UFUNCTION(BlueprintCallable, Category = "Market")
 	void UpdateList(FName MarketName);
 
@@ -25,7 +28,7 @@ public:
 	void AddProductMenuItem(const FText &ProductName,const int32 ProductId);
 	
 	UFUNCTION(BlueprintCallable, Category = "Market")
-	void UpdateOrderList(const int32 order);
+	void UpdateOrderList(const int32 product);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
 	void AddSellOrderItem(const float price,const int32 stock);

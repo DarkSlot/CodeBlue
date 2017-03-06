@@ -492,6 +492,89 @@ bool USQLiteDatabase::ExecSql(const FString DatabaseName, const FString Query) {
 	return execStatus;
 }
 
+SQLiteResult USQLiteDatabase::ExecuteQuery(FString DatabaseName, FString Query) {
+	SQLiteResult result;
+
+	sqlite3* db;
+	int32 sqlReturnCode = 0;
+	int32* sqlReturnCode1 = &sqlReturnCode;
+	sqlite3_stmt* preparedStatement;
+
+	PrepareStatement(&DatabaseName, &Query, &db, &sqlReturnCode1, &preparedStatement);
+	sqlReturnCode = *sqlReturnCode1;
+
+	if (sqlReturnCode != SQLITE_OK)
+	{
+		const char* errorMessage = sqlite3_errmsg(db);
+		FString error = "SQL error: " + FString(UTF8_TO_TCHAR(errorMessage));
+		LOGSQLITE(Error, *error);
+		LOGSQLITE(Error, *FString::Printf(TEXT("The attempted query was: %s"), *Query));
+		result.ErrorMessage = error;
+		result.Success = false;
+		sqlite3_finalize(preparedStatement);
+		sqlite3_close(db);
+		return result;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Get and assign the data
+	//////////////////////////////////////////////////////////////////////////
+
+	TArray<SQLiteRow> resultRows;
+
+	for (sqlReturnCode = sqlite3_step(preparedStatement);
+		sqlReturnCode != SQLITE_DONE && sqlReturnCode == SQLITE_ROW;
+		sqlReturnCode = sqlite3_step(preparedStatement))
+	{
+		SQLiteRow row;
+
+		LOGSQLITE(Verbose, TEXT("Query returned a result row."));
+		int32 resultColumnCount = sqlite3_column_count(preparedStatement);
+		for (int32 c = 0; c < resultColumnCount; c++)
+		{
+			int32 columnType = sqlite3_column_type(preparedStatement, c);
+			const char* columnName = sqlite3_column_name(preparedStatement, c);
+			FString columnNameStr = UTF8_TO_TCHAR(columnName);
+			SQLiteField val;
+			switch (columnType)
+			{
+			case SQLITE_INTEGER:
+				val.Type = SQLiteResultValueTypes::Integer;
+				val.IntValue = sqlite3_column_int64(preparedStatement, c);
+				break;
+			case SQLITE_TEXT:
+				val.Type = SQLiteResultValueTypes::Text;
+				val.StringValue = UTF8_TO_TCHAR(sqlite3_column_text(preparedStatement, c));
+				break;
+			case SQLITE_FLOAT:
+				val.Type = SQLiteResultValueTypes::Float;
+				val.RealValue = sqlite3_column_double(preparedStatement, c);
+				break;
+			case SQLITE_NULL:
+			default:
+				val.Type = SQLiteResultValueTypes::UnsupportedValueType;
+			}
+
+			if (val.Type != SQLiteResultValueTypes::UnsupportedValueType)
+			{
+				row.Fields.Add(columnNameStr,val);
+			}
+		}
+
+		resultRows.Add(row);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Release the statement and close the connection
+	//////////////////////////////////////////////////////////////////////////
+
+	sqlite3_finalize(preparedStatement);
+	sqlite3_close(db);
+
+	result.Rows = resultRows;
+	result.Success = true;
+	return result;
+}
 //--------------------------------------------------------------------------------------------------------------
 
 bool USQLiteDatabase::CreateIndexes(const FString DatabaseName, const FString TableName, const TArray<FSQLiteIndex> Indexes)

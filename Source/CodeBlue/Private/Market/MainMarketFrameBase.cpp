@@ -29,10 +29,11 @@ void UMainMarketFrameBase::UpdateList(FName MarketName) {
 		}
 	}
 }
-void UMainMarketFrameBase::UpdateOrderList(const int32 order) {
+void UMainMarketFrameBase::UpdateOrderList(const int32 product) {
+	CurrentProductId = product;
 	ClearOrderList();
 	FString product_sql = TEXT("select * from ProductOrder where productid =");
-	product_sql.AppendInt(order);
+	product_sql.AppendInt(product);
 	FSQLiteQueryResult result = USQLiteDatabase::GetData(TEXT("market"), product_sql);
 	if (result.Success)
 	{

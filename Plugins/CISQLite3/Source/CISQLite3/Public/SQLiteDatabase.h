@@ -113,6 +113,43 @@ struct SQLiteQueryResult
 	TArray<SQLiteResultValue> Results;
 };
 
+// Result field, used as an intermediary when collecting results from
+// an SQLITE3 query.
+struct SQLiteField
+{
+	FString StringValue;
+	float RealValue;
+	int64 IntValue;
+
+	SQLiteResultValueTypes::SQLiteResultValType Type;
+
+	FString ToString()
+	{
+		if (Type == SQLiteResultValueTypes::Text)
+			return StringValue;
+		else if (Type == SQLiteResultValueTypes::Integer)
+			return FString::Printf(TEXT("%i"), IntValue);
+		else if (Type == SQLiteResultValueTypes::Float)
+			return FString::Printf(TEXT("%f"), RealValue);
+
+		return StringValue;
+	}
+};
+
+// Represents a single row in the result.
+struct SQLiteRow
+{
+	TMap<FString, SQLiteField> Fields;
+};
+
+// The internal result object.
+struct SQLiteResult
+{
+	bool Success;
+	FString ErrorMessage;
+	TArray<SQLiteRow> Rows;
+};
+
 
 
 /**
@@ -191,6 +228,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SQLite|Query", meta = (DisplayName = "Execute SQL"))
 		static bool ExecSql(const FString DatabaseName, const FString Query);
 
+	static SQLiteResult ExecuteQuery(FString DatabaseName, FString Query);
 private:
 	/** Checks database validity (if the file exists and/or if it can be opened). */
 	static bool IsValidDatabase(FString DatabaseFilename, bool TestByOpening);

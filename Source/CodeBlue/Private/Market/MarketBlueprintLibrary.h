@@ -19,4 +19,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Market")
 	static void SellProduct(const int32 ProductId, const int32 price, const int32 num);
+
+	UFUNCTION(BlueprintCallable, Category = "Market")
+	static FString VerifyPriceString(const FString &Str);
 };
