@@ -575,6 +575,33 @@ SQLiteResult USQLiteDatabase::ExecuteQuery(FString DatabaseName, FString Query) 
 	result.Success = true;
 	return result;
 }
+bool USQLiteDatabase::ExecuteNoQuery(FString DatabaseName, FString Query) {
+	sqlite3* db;
+	int32 sqlReturnCode = 0;
+	int32* sqlReturnCode1 = &sqlReturnCode;
+	sqlite3_stmt* preparedStatement;
+
+	PrepareStatement(&DatabaseName, &Query, &db, &sqlReturnCode1, &preparedStatement);
+	sqlReturnCode = *sqlReturnCode1;
+
+	if (sqlReturnCode != SQLITE_OK)
+	{
+		const char* errorMessage = sqlite3_errmsg(db);
+		FString error = "SQL error: " + FString(UTF8_TO_TCHAR(errorMessage));
+		LOGSQLITE(Error, *error);
+		LOGSQLITE(Error, *FString::Printf(TEXT("The attempted query was: %s"), *Query));
+		sqlite3_finalize(preparedStatement);
+		sqlite3_close(db);
+		return false;
+	}
+	//////////////////////////////////////////////////////////////////////////
+	// Release the statement and close the connection
+	//////////////////////////////////////////////////////////////////////////
+
+	sqlite3_finalize(preparedStatement);
+	sqlite3_close(db);
+	return true;
+}
 //--------------------------------------------------------------------------------------------------------------
 
 bool USQLiteDatabase::CreateIndexes(const FString DatabaseName, const FString TableName, const TArray<FSQLiteIndex> Indexes)

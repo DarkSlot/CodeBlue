@@ -5,6 +5,7 @@
 #include "Command/MarketCommand.h"
 #include <thread>
 #include <mutex>
+#include <atomic>
 /**
  * 
  */
@@ -16,12 +17,20 @@ public:
 	
 	static MarketProcessCore *StartGetInstance();
 	static void Shutdown();
+
+	void EnqueueCommand(MarketCommand *command);
 private:
 	/** Singleton instance, can access the thread any time via static accessor, if it is active! */
 	static  MarketProcessCore* Instance;
 
-	std::mutex CommandMutex;
-	TArray<MarketCommand *> CommandList;
-
-	void EnqueueCommand(MarketCommand *command);
+	enum ERunningState :int8
+	{
+		RUNNING,
+		STOPING,
+		STOPED
+	};
+	std::atomic_int8_t RunningState;
+	TQueue<MarketCommand *> CommandList;
+	void Stop();
+	void ProcessCommand();
 };

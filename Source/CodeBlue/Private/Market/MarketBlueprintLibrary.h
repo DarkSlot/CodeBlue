@@ -15,11 +15,16 @@ class UMarketBlueprintLibrary : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Market")
-	static void BuyProduct(const int32 ProductId,const int32 price,const int32 num);
+	static void BuyProduct(const int32 productid, const float price, const int32 num,
+		const int32 userid, const int32 depotid);
 	
 	UFUNCTION(BlueprintCallable, Category = "Market")
-	static void SellProduct(const int32 ProductId, const int32 price, const int32 num);
+	static void SellProduct(const int32 productid, const float price, const int32 num,
+		const int32 userid, const int32 depotid);
 
-	UFUNCTION(BlueprintCallable, Category = "Market")
-	static FString VerifyPriceString(const FString &Str);
+	UFUNCTION(BlueprintCallable, Category = "Util")
+	static FString VerifyFloatString(const FString &Str);
+
+	UFUNCTION(BlueprintCallable, Category = "Util")
+	static FString VerifyIntString(const FString &Str);
 };

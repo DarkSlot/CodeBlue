@@ -14,8 +14,11 @@ class UTradeWindowBase : public UUserWidget
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable, Category = "Market")
-	void UpdateTradeWindow(const int32 ProductId,const bool IsBuyWindow);
+	void UpdateTradeWindow(const int32 productid,const bool IsBuyWindow);
 	
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
 	void InitTradeWindow(const FText &ProductName,const float AdvisePrice);
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Market")
+	int32 ProductId;
 };

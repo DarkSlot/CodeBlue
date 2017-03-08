@@ -6,7 +6,8 @@
 #include "SQLiteDatabase.h"
 
 
-void UTradeWindowBase::UpdateTradeWindow(const int32 ProductId, const bool IsBuyWindow) {
+void UTradeWindowBase::UpdateTradeWindow(const int32 productid, const bool IsBuyWindow) {
+	ProductId = productid;
 	int32 ordertype = IsBuyWindow ? 1 : 0;
 	FString product_sql = FString::Printf(
 		TEXT("select s1.stock,s1.price,s2.productname from ProductOrder"

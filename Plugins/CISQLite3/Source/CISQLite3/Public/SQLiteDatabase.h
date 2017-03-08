@@ -229,6 +229,7 @@ public:
 		static bool ExecSql(const FString DatabaseName, const FString Query);
 
 	static SQLiteResult ExecuteQuery(FString DatabaseName, FString Query);
+	static bool ExecuteNoQuery(FString DatabaseName, FString Query);
 private:
 	/** Checks database validity (if the file exists and/or if it can be opened). */
 	static bool IsValidDatabase(FString DatabaseFilename, bool TestByOpening);
