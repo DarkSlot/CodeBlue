@@ -52,6 +52,7 @@ void MarketProcessCore::ProcessCommand() {
 			MarketCommand *command;
 			CommandList.Dequeue(command);
 			command->Execute();
+			delete command;
 		}
 	}
 	RunningState = STOPED;

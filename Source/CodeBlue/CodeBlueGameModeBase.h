@@ -12,8 +12,6 @@ UCLASS()
 class CODEBLUE_API ACodeBlueGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+public:
+	ACodeBlueGameModeBase();	
 };

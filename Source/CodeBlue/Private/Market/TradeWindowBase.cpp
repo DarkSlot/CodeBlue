@@ -7,12 +7,14 @@
 
 
 void UTradeWindowBase::UpdateTradeWindow(const int32 productid, const bool IsBuyWindow) {
+	bIsBuyWindow = IsBuyWindow;
 	ProductId = productid;
-	int32 ordertype = IsBuyWindow ? 1 : 0;
+	int32 ordertype = IsBuyWindow ? 0 : 1;
+	FString orderbystr = IsBuyWindow? "desc":"";
 	FString product_sql = FString::Printf(
 		TEXT("select s1.stock,s1.price,s2.productname from ProductOrder"
 		" as s1 join Product as s2 on s1.productid = s2.productid where s1.productid =%d"
-		" and s1.ordertype = %d "), ProductId, ordertype);
+		" and s1.ordertype = %d order by price %s"), ProductId, ordertype,*orderbystr);
 	SQLiteResult result = USQLiteDatabase::ExecuteQuery(TEXT("market"), product_sql);
 	if (result.Success)
 	{

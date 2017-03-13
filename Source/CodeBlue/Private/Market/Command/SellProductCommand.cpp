@@ -87,6 +87,7 @@ void SellProductCommand::Execute() {
 				FString costmoney_sql = FString::Printf(
 					TEXT("update User set money = money + %f where userid = %d"), dealed_money, UserId);
 				USQLiteDatabase::ExecuteNoQuery(TEXT("market"), costmoney_sql);
+				RemainNum = 0;
 			}
 			else
 			{

@@ -21,4 +21,6 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Market")
 	int32 ProductId;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Market")
+	bool bIsBuyWindow;
 };

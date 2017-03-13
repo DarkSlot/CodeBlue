@@ -19,7 +19,7 @@ BuyProductCommand::~BuyProductCommand()
 }
 void BuyProductCommand::Execute() {
 	FString product_sql = FString::Printf(
-		TEXT("select orderid,stock,price,userid from ProductOrder"
+		TEXT("select orderid,stock,price,userid from ProductOrder "
 			"where productid =%d and ordertype = 0 order by price"), ProductId);
 	SQLiteResult result = USQLiteDatabase::ExecuteQuery(TEXT("market"), product_sql);
 	if (result.Success)
@@ -87,6 +87,7 @@ void BuyProductCommand::Execute() {
 						USQLiteDatabase::ExecuteNoQuery(TEXT("market"), addproperty_sql);
 					}
 				}
+				RemainNum = 0;
 			}
 			else 
 			{

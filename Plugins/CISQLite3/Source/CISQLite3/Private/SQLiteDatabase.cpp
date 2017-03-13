@@ -597,10 +597,10 @@ bool USQLiteDatabase::ExecuteNoQuery(FString DatabaseName, FString Query) {
 	//////////////////////////////////////////////////////////////////////////
 	// Release the statement and close the connection
 	//////////////////////////////////////////////////////////////////////////
-
+	bool result = sqlite3_step(preparedStatement)== SQLITE_DONE;
 	sqlite3_finalize(preparedStatement);
 	sqlite3_close(db);
-	return true;
+	return result;
 }
 //--------------------------------------------------------------------------------------------------------------
 
