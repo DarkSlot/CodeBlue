@@ -17,5 +17,13 @@ class AShipPlayerController : public APlayerController
 public:
 	AShipPlayerController();
 	
+	UFUNCTION(BlueprintCallable, Category = Ship)
+	void DockShip();
+
+protected:
+	virtual void SetupInputComponent() override;
+	virtual void PlayerTick(float DeltaTime);
 	
+	static const FName MoveForwardBinding;
+	static const FName TurnRightBinding;
 };
