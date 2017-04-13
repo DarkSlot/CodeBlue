@@ -10,11 +10,25 @@ const FName AShipPlayerController::TurnRightBinding("TurnRightBinding");
 AShipPlayerController::AShipPlayerController() {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
-}
-void AShipPlayerController::DockShip() {
-
+	bDocking = false;
 }
 
+bool AShipPlayerController::DockShip() {
+	if (bDocking)
+	{
+		return false;
+	}
+	bDocking = true;
+	return true;
+}
+bool AShipPlayerController::UndockShip() {
+	if (!bDocking)
+	{
+		return false;
+	}
+	bDocking = false;
+	return true;
+}
 void AShipPlayerController::SetupInputComponent() {
 	// set up gameplay key bindings
 	Super::SetupInputComponent();
@@ -30,6 +44,10 @@ void AShipPlayerController::SetupInputComponent() {
 }
 void AShipPlayerController::PlayerTick(float DeltaTime) {
 	Super::PlayerTick(DeltaTime);
+	if (bDocking)
+	{
+		return;
+	}
 	// Find movement direction
 	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
 	const float RightValue = GetInputAxisValue(TurnRightBinding);
@@ -45,7 +63,7 @@ void AShipPlayerController::PlayerTick(float DeltaTime) {
 	const FVector Movement = ForwardDir * ForwardValue *DeltaTime*pawn->Speed;
 	PawnRotator.Yaw += RightValue*DeltaTime*pawn->Agility;
 
-	FHitResult Hit;
+	FHitResult Hit(1.0f);
 	pawn->GetRootComponent()->MoveComponent(Movement, PawnRotator, true, &Hit);
 	if (Hit.IsValidBlockingHit())
 	{

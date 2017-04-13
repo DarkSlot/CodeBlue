@@ -29,7 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ship)
 	float Speed;
 
-	/** The speed of this ship. */
+	/** The Agility of this ship. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ship)
 	float Agility;
 };

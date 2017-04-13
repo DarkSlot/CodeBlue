@@ -7,6 +7,7 @@ ProductLocalizationList *ProductLocalizationList::Instance = nullptr;
 ProductLocalizationList::ProductLocalizationList()
 {
 	LocalList.Add(TEXT("Graphene"), NSLOCTEXT("Game", "Graphene", "Graphene"));
+	LocalList.Add(TEXT("Food"), NSLOCTEXT("Game", "Food", "Food"));
 }
 
 ProductLocalizationList::~ProductLocalizationList()

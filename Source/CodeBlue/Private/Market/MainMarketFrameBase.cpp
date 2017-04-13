@@ -4,29 +4,19 @@
 #include "MainMarketFrameBase.h"
 #include "../Localization/ProductLocalizationList.h"
 #include "SQLiteDatabase.h"
+#include "ProductDataTable.h"
 
 void UMainMarketFrameBase::UpdateList(FName MarketName) {
-	FString product_sql = TEXT("select * from product");
-	FSQLiteQueryResult result = USQLiteDatabase::GetData(TEXT("market"), product_sql);
-	if (result.Success)
+	UDataTable *ProductList;
+	ProductList = LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/ProductData.ProductData"));
+
+	static const FString ContextString(TEXT("GENERAL"));
+
+	TArray<FProductDataTable *> ProductArray;
+	ProductList->GetAllRows(ContextString, ProductArray);
+	for (auto row: ProductArray)
 	{
-		for (auto &row: result.ResultRows)
-		{
-			FString name = "";
-			int32 productid = 0;
-			for (auto &item : row.Fields)
-			{
-				if (item.Key == TEXT("productname"))
-				{
-					name = item.Value;
-				}
-				else if (item.Key == TEXT("productid"))
-				{
-					productid = FCString::Atoi(*item.Value);
-				}
-			}
-			AddProductMenuItem(ProductLocalizationList::FindProductName(name), productid);
-		}
+		AddProductMenuItem(ProductLocalizationList::FindProductName(row->productname), row->productid);		
 	}
 }
 void UMainMarketFrameBase::UpdateOrderList(const int32 product) {

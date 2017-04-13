@@ -4,6 +4,7 @@
 
 #include "Engine/GameInstance.h"
 #include "Localization/ProductLocalizationList.h"
+#include "Blueprint/UserWidget.h"
 #include "GMGameInstance.generated.h"
 
 /**
@@ -17,6 +18,11 @@ public:
 	UGMGameInstance();
 	virtual ~UGMGameInstance();
 
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void CreateGameUI();
+
 	ProductLocalizationList *ProductLocalizationList;
-	
+
+	UPROPERTY(BlueprintReadWrite, Category = "UI")
+	UUserWidget* WidgetInstance;	
 };

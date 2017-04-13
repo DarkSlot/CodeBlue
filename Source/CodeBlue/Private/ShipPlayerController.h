@@ -16,10 +16,16 @@ class AShipPlayerController : public APlayerController
 
 public:
 	AShipPlayerController();
-	
-	UFUNCTION(BlueprintCallable, Category = Ship)
-	void DockShip();
 
+	UFUNCTION(BlueprintCallable, Category = Ship)
+	bool DockShip();
+
+	UFUNCTION(BlueprintCallable, Category = Ship)
+	bool UndockShip();
+	
+	/** The Agility of this ship. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ship)
+		bool bDocking;
 protected:
 	virtual void SetupInputComponent() override;
 	virtual void PlayerTick(float DeltaTime);
