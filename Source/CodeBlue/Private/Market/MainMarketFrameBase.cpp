@@ -3,65 +3,78 @@
 #include "CodeBlue.h"
 #include "MainMarketFrameBase.h"
 #include "../Localization/ProductLocalizationList.h"
-#include "SQLiteDatabase.h"
-#include "ProductDataTable.h"
+//#include "SQLiteDatabase.h"
+#include "../GMGameInstance.h"
+#include "../Data/DataProcesser.h"
 
 void UMainMarketFrameBase::UpdateList(FName MarketName) {
-	UDataTable *ProductList;
-	ProductList = LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/ProductData.ProductData"));
-
-	static const FString ContextString(TEXT("GENERAL"));
-
-	TArray<FProductDataTable *> ProductArray;
-	ProductList->GetAllRows(ContextString, ProductArray);
-	for (auto row: ProductArray)
+	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
+	TMap<int32, FProductDataTable *> &InfoMap = GameInstance->DataProcesser->GetProductInfo();
+	for (auto info: InfoMap)
 	{
-		AddProductMenuItem(ProductLocalizationList::FindProductName(row->productname), row->productid);		
+		AddProductMenuItem(ProductLocalizationList::FindProductName(info.Value->productname), info.Key);
 	}
 }
-void UMainMarketFrameBase::UpdateOrderList(const int32 product) {
+void UMainMarketFrameBase::UpdateOrderList(const int32 product, const int32 station) {
 	CurrentProductId = product;
 	ClearOrderList();
-	FString product_sql = TEXT("select * from ProductOrder where productid =");
-	product_sql.AppendInt(product);
-	FSQLiteQueryResult result = USQLiteDatabase::GetData(TEXT("market"), product_sql);
-	if (result.Success)
+	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
+	OrderList *orderlist;
+	GameInstance->DataProcesser->GetProductOrder(product, station,&orderlist);
+	if (orderlist)
 	{
-		for (auto &row : result.ResultRows)
+		for (auto order : *orderlist)
 		{
-			int32 ordertype = 0;
-			int32 userid = 0;
-			int32 stock = 0;
-			float price = 0.0f;
-			for (auto &item : row.Fields)
+			if (order->ordertype == 0)
 			{
-				if (item.Key == TEXT("ordertype"))
-				{
-					ordertype =	FCString::Atoi(*item.Value);
-				}
-				else if (item.Key == TEXT("userid"))
-				{
-					userid = FCString::Atoi(*item.Value);
-				}
-				else if (item.Key == TEXT("stock"))
-				{
-					stock = FCString::Atof(*item.Value);
-				}
-				else if (item.Key == TEXT("price"))
-				{
-					price = FCString::Atof(*item.Value);
-				}
+				AddSellOrderItem(order->price, order->stock);
 			}
-			if (ordertype == 0)
+			else
 			{
-				AddSellOrderItem(price, stock);
-			}
-			else if (ordertype == 1)
-			{
-				AddBuyOrderItem(price,stock);
+				AddBuyOrderItem(order->price, order->stock);
 			}
 		}
 	}
+	//FString product_sql = TEXT("select * from ProductOrder where productid =");
+	//product_sql.AppendInt(product);
+	//FSQLiteQueryResult result = USQLiteDatabase::GetData(TEXT("market"), product_sql);
+	//if (result.Success)
+	//{
+	//	for (auto &row : result.ResultRows)
+	//	{
+	//		int32 ordertype = 0;
+	//		int32 userid = 0;
+	//		int32 stock = 0;
+	//		float price = 0.0f;
+	//		for (auto &item : row.Fields)
+	//		{
+	//			if (item.Key == TEXT("ordertype"))
+	//			{
+	//				ordertype =	FCString::Atoi(*item.Value);
+	//			}
+	//			else if (item.Key == TEXT("userid"))
+	//			{
+	//				userid = FCString::Atoi(*item.Value);
+	//			}
+	//			else if (item.Key == TEXT("stock"))
+	//			{
+	//				stock = FCString::Atof(*item.Value);
+	//			}
+	//			else if (item.Key == TEXT("price"))
+	//			{
+	//				price = FCString::Atof(*item.Value);
+	//			}
+	//		}
+	//		if (ordertype == 0)
+	//		{
+	//			AddSellOrderItem(price, stock);
+	//		}
+	//		else if (ordertype == 1)
+	//		{
+	//			AddBuyOrderItem(price,stock);
+	//		}
+	//	}
+	//}
 }
 
 

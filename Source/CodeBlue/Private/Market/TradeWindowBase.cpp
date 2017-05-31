@@ -3,27 +3,43 @@
 #include "CodeBlue.h"
 #include "TradeWindowBase.h"
 #include "../Localization/ProductLocalizationList.h"
-#include "SQLiteDatabase.h"
+//#include "SQLiteDatabase.h"
+#include "../GMGameInstance.h"
+#include "../Data/DataProcesser.h"
 
 
-void UTradeWindowBase::UpdateTradeWindow(const int32 productid, const bool IsBuyWindow) {
+void UTradeWindowBase::UpdateTradeWindow(const int32 productid, const int32 stationid, const bool IsBuyWindow) {
 	bIsBuyWindow = IsBuyWindow;
 	ProductId = productid;
 	int32 ordertype = IsBuyWindow ? 0 : 1;
-	FString orderbystr = IsBuyWindow? "desc":"";
-	FString product_sql = FString::Printf(
-		TEXT("select s1.stock,s1.price,s2.productname from ProductOrder"
-		" as s1 join Product as s2 on s1.productid = s2.productid where s1.productid =%d"
-		" and s1.ordertype = %d order by price %s"), ProductId, ordertype,*orderbystr);
-	SQLiteResult result = USQLiteDatabase::ExecuteQuery(TEXT("market"), product_sql);
-	if (result.Success)
+	auto CompareFun = [ordertype](float a, float b) {return (ordertype ==0)?(a < b):(a>b); };
+
+	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
+	OrderList *orderlist = nullptr;
+	GameInstance->DataProcesser->GetProductOrder(productid, stationid, &orderlist);
+	FOrderDataItem *MatchItem = nullptr;
+	if (orderlist)
 	{
-		if (result.Rows.Num())
+		for (auto order : *orderlist)
 		{
-			FString productname = result.Rows[0].Fields["productname"].ToString();
-			InitTradeWindow(ProductLocalizationList::FindProductName(productname),
-				result.Rows[0].Fields["price"].RealValue);
+			if (order->ordertype == ordertype)
+			{
+				if (!MatchItem)
+				{
+					MatchItem = order;
+				}
+				else if (CompareFun(order->price, MatchItem->price))
+				{
+					MatchItem = order;
+				}
+			}
 		}
+	}
+	if (MatchItem)
+	{
+		InitTradeWindow(ProductLocalizationList::FindProductName(
+			GameInstance->DataProcesser->GetProductName(MatchItem->productid)),
+			MatchItem->price);
 	}
 }
 

@@ -2,12 +2,12 @@
 
 #include "CodeBlue.h"
 #include "MarketProcessCore.h"
-#include "SQLiteDatabase.h"
+//#include "SQLiteDatabase.h"
 
 MarketProcessCore* MarketProcessCore::Instance = nullptr;
-MarketProcessCore::MarketProcessCore()
+MarketProcessCore::MarketProcessCore(const FString &filename)
 {
-	USQLiteDatabase::RegisterDatabase(TEXT("market"), TEXT("/Data/market.db"), true);
+	//USQLiteDatabase::RegisterDatabase(TEXT("market"), filename/*TEXT("/Data/market.db")*/, true);
 	RunningState = RUNNING;
 	UE_LOG(CodeBlueLog, Verbose,TEXT("Market Thread Start"));
 }
@@ -16,14 +16,16 @@ MarketProcessCore::~MarketProcessCore()
 {
 	UE_LOG(CodeBlueLog, Verbose, TEXT("Market Thread Stopped"));
 }
-
-MarketProcessCore *MarketProcessCore::StartGetInstance() {
+MarketProcessCore *MarketProcessCore::StartInstance(const FString &filename) {
 	if (!Instance&& FPlatformProcess::SupportsMultithreading())
 	{
-		Instance = new MarketProcessCore();
+		Instance = new MarketProcessCore(filename);
 		std::thread MainThread(&MarketProcessCore::ProcessCommand, Instance);
 		MainThread.detach();
 	}
+	return Instance;
+}
+MarketProcessCore *MarketProcessCore::GetInstance() {
 	return Instance;
 }
 void MarketProcessCore::Shutdown() {

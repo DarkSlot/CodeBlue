@@ -3,19 +3,20 @@
 #include "CodeBlue.h"
 #include "MarketBlueprintLibrary.h"
 #include "UnrealString.h"
-#include "MarketProcessCore.h"
-#include "Command/BuyProductCommand.h"
-#include "Command/SellProductCommand.h"
+#include "../GMGameInstance.h"
+#include "../Data/DataProcesser.h"
 
-void UMarketBlueprintLibrary::BuyProduct(const int32 productid, const float price, const int32 num,
-	const int32 userid, const int32 depotid) {
-	BuyProductCommand *command = new BuyProductCommand(productid,price,num,userid,depotid);
-	MarketProcessCore::StartGetInstance()->EnqueueCommand(command);
+void UMarketBlueprintLibrary::BuyProduct(const UObject *WorldContext,
+	const int32 productid, const float price, const int32 num,
+	const int32 userid, const int32 stationid) {
+	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(WorldContext));
+	GameInstance->DataProcesser->BuyProduct(productid, price,num,userid, stationid);
 }
-void UMarketBlueprintLibrary::SellProduct(const int32 productid, const float price, const int32 num,
-	const int32 userid, const int32 depotid) {
-	SellProductCommand *command = new SellProductCommand(productid, price, num, userid, depotid);
-	MarketProcessCore::StartGetInstance()->EnqueueCommand(command);
+void UMarketBlueprintLibrary::SellProduct(const UObject *WorldContext,
+	const int32 productid, const float price, const int32 num,
+	const int32 userid, const int32 stationid) {
+	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(WorldContext));
+	GameInstance->DataProcesser->BuyProduct(productid, price, num, userid, stationid);
 }
 FString UMarketBlueprintLibrary::VerifyFloatString(const FString &Str) {
 	FString result(TEXT(""));

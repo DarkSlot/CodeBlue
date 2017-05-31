@@ -46,5 +46,7 @@ protected:
 
 	TArray<FStationTradingItem> BuyList;
 	TArray<FStationTradingItem> SellList;
-	
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Station")
+	int32 StationId;
 };

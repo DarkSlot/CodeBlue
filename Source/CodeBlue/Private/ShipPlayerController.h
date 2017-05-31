@@ -23,13 +23,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Ship)
 	bool UndockShip();
 	
-	/** The Agility of this ship. */
+	/** this ship is docking. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ship)
-		bool bDocking;
+	bool bDocking;
+
+	/** The docing station of this ship. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Ship)
+	int32  DockingStation;
 protected:
 	virtual void SetupInputComponent() override;
 	virtual void PlayerTick(float DeltaTime);
 	
 	static const FName MoveForwardBinding;
 	static const FName TurnRightBinding;
+
+
 };

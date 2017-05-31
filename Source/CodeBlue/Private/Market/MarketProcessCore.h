@@ -12,10 +12,11 @@
 class MarketProcessCore
 {
 public:
-	MarketProcessCore();
+	MarketProcessCore(const FString &filename);
 	virtual ~MarketProcessCore();
 	
-	static MarketProcessCore *StartGetInstance();
+	static MarketProcessCore *StartInstance(const FString &filename);
+	static MarketProcessCore *GetInstance();
 	static void Shutdown();
 
 	void EnqueueCommand(MarketCommand *command);

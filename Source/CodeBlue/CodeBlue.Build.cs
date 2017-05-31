@@ -4,11 +4,11 @@ using UnrealBuildTool;
 
 public class CodeBlue : ModuleRules
 {
-	public CodeBlue(TargetInfo Target)
+	public CodeBlue(ReadOnlyTargetRules Target):base(Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "AIModule", "GameplayTasks"/*, "CISQLite3" */});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "UMG", "CISQLite3" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "UMG" });
         
 
         // Uncomment if you are using Slate UI

@@ -8,6 +8,7 @@ ProductLocalizationList::ProductLocalizationList()
 {
 	LocalList.Add(TEXT("Graphene"), NSLOCTEXT("Game", "Graphene", "Graphene"));
 	LocalList.Add(TEXT("Food"), NSLOCTEXT("Game", "Food", "Food"));
+	LocalList.Add(TEXT("Fuel"), NSLOCTEXT("Game", "Fuel", "Fuel"));
 }
 
 ProductLocalizationList::~ProductLocalizationList()

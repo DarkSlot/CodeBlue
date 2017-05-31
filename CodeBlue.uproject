@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.15",
+	"EngineAssociation": "4.16",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -10,14 +10,11 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"UMG",
-				"Engine"
+				"Engine",
+				"AIModule",
+				"CoreUObject"
 			]
 		}
 	],
-	"Plugins": [
-		{
-			"Name": "CISQLite3",
-			"Enabled": true
-		}
-	]
+	"Plugins": []
 }

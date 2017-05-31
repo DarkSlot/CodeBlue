@@ -3,14 +3,15 @@
 #include "CodeBlue.h"
 #include "GMGameInstance.h"
 #include "Market/MarketProcessCore.h"
+#include "HAL/FileManager.h"
 
 
 UGMGameInstance::UGMGameInstance() {
 	ProductLocalizationList::CreateLocalizationList();
-	MarketProcessCore::StartGetInstance();
+	//MarketProcessCore::StartGetInstance();
 }
 UGMGameInstance::~UGMGameInstance() {
-	MarketProcessCore::Shutdown();
+	//MarketProcessCore::Shutdown();
 }
 void UGMGameInstance::CreateGameUI() {
 	//static ConstructorHelpers::FClassFinder<UUserWidget> MainGameUIClass(TEXT("/Game/UI/Game/MainGameUI"));
@@ -21,5 +22,11 @@ void UGMGameInstance::CreateGameUI() {
 	WidgetInstance = CreateWidget<UUserWidget>(this, bp);
 	WidgetInstance->AddToViewport();
 }
+void UGMGameInstance::CreateNewGameData() {
+	DataProcesser = NewObject<UDataProcesser>();
+	DataProcesser->Init();
+}
+void UGMGameInstance::LoadGameDatabase() {
 
+}
 

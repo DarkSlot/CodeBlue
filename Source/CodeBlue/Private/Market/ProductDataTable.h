@@ -25,4 +25,25 @@ struct FProductDataTable : public FTableRowBase
 	/** Scriptable Use Code */
 	UPROPERTY(BlueprintReadOnly, Category = "Market")
 	float baseprice;
+
+	FProductDataTable() {
+		productid = 0;
+		productname = TEXT("");
+		description = TEXT("");
+		baseprice = 0.0f;
+	}
+	FProductDataTable(const FProductDataTable &table) {
+		productid = table.productid;
+		productname = table.productname;
+		description = table.description;
+		baseprice = table.baseprice;
+	}
+	FProductDataTable operator=(const FProductDataTable &table) {
+		FProductDataTable result;
+		result.productid = table.productid;
+		result.productname = table.productname;
+		result.description = table.description;
+		result.baseprice = table.baseprice;
+		return result;
+	}
 };

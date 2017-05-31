@@ -28,8 +28,8 @@ namespace UnrealBuildTool.Rules
 
 	public class RenderDocPlugin : ModuleRules
 	{
-		public RenderDocPlugin(TargetInfo Target)
-		{
+		public RenderDocPlugin(ReadOnlyTargetRules Target) : base(Target)
+        {
 			PrivateDependencyModuleNames.AddRange(new string[] { });
 
 			PublicIncludePaths.AddRange(new string[] { "RenderDocPlugin/Public" });

@@ -28,11 +28,16 @@ public:
 	void AddProductMenuItem(const FText &ProductName,const int32 ProductId);
 	
 	UFUNCTION(BlueprintCallable, Category = "Market")
-	void UpdateOrderList(const int32 product);
+	void UpdateOrderList(const int32 product,const int32 station);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
 	void AddSellOrderItem(const float price,const int32 stock);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
 	void AddBuyOrderItem(const float price, const int32 stock);
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Station")
+	int32 StationId;
+private:
+	FString GetProductNameById(const int32 productid);
 };
