@@ -2,6 +2,8 @@
 
 #include "CodeBlue.h"
 #include "StationBase.h"
+#include "Data/DataProcesser.h"
+#include "GMGameInstance.h"
 
 
 // Sets default values
@@ -16,7 +18,17 @@ AStationBase::AStationBase()
 void AStationBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(GetGameInstance());
+	TArray<FStationTradeDataItem *> stationInfoList;
+	StationTradeList &InfoMap = GameInstance->DataProcesser->GetStationTradeInfo();
+	InfoMap.MultiFind(StationId, stationInfoList);
+	for (auto info: stationInfoList)
+	{
+		if (info->isBuy == 0)
+		{
+
+		}
+	}
 }
 
 // Called every frame

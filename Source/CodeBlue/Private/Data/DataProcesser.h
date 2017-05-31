@@ -7,7 +7,7 @@
 #include "UserDataItem.h"
 #include "PropertyDataItem.h"
 #include "StationTradeDataItem.h"
-#include "../Market/ProductDataTable.h"
+#include "ProductInfoItem.h"
 #include "DataProcesser.generated.h"
 
 
@@ -46,6 +46,7 @@ public:
 	void Init();
 	bool GetProductOrder(const int32 productid, const int32 stationid, OrderList **list);
 	TMap<int32, FProductInfoItem *> &GetProductInfo();
+	StationTradeList &GetStationTradeInfo();
 	FString GetProductName(const int32 productid);
 private:
 	//TMap<OrderDataKeyType, OrderList, FDefaultSetAllocator, OrderDataKeyFuncs> OrderData;
@@ -54,9 +55,8 @@ private:
 	OrderRemoveEventList OrderRemoveListeners;
 	UserList UserData;
 	UserPropertyList PropertyData;
-	UDataTable *ProductInfoDataTable;
 	TMap<int32, FProductInfoItem *> ProductInfo;
-	StationTradeList *StationTradeInfo;
+	StationTradeList StationTradeInfo;
 	//StationOrderEventList OrderEventData;
 
 	void RemoveOrder(FOrderDataItem *order);

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Engine/DataTable.h"
-#include "ProductDataTable.generated.h"
+#include "ProductInfoItem.generated.h"
 
 USTRUCT(Blueprintable)
 struct FProductInfoItem : public FTableRowBase

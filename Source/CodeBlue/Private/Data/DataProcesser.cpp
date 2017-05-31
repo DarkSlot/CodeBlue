@@ -387,7 +387,9 @@ int32 UDataProcesser::CheckProductStock(const int32 productid,
 //	return orderlistevent;
 //}
 void UDataProcesser::Init() {
-	ProductInfoDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/ProductData.ProductData"));
+	//product info
+	UDataTable *ProductInfoDataTable = 
+		LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/ProductData.ProductData"));
 
 	static const FString ContextString(TEXT("GENERAL"));
 
@@ -396,6 +398,15 @@ void UDataProcesser::Init() {
 	for (auto row : ProductArray)
 	{
 		ProductInfo.Add(row->productid, new FProductInfoItem(*row));
+	}
+	//station trade info
+	UDataTable *StationInfoDataTable = 
+		LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/StationTradeList.StationTradeList"));
+	TArray<FStationTradeDataItem *> StationInfoArray;
+	StationInfoDataTable->GetAllRows(ContextString, StationInfoArray);
+	for (auto row : StationInfoArray)
+	{
+		StationTradeInfo.Add(row->userid, new FStationTradeDataItem(*row));
 	}
 }
 
@@ -413,6 +424,9 @@ bool UDataProcesser::GetProductOrder(const int32 productid,
 }
 TMap<int32, FProductInfoItem *> &UDataProcesser::GetProductInfo() {
 	return ProductInfo;
+}
+StationTradeList &UDataProcesser::GetStationTradeInfo() {
+	return StationTradeInfo;
 }
 FString UDataProcesser::GetProductName(const int32 productid) {
 	FProductInfoItem **info = ProductInfo.Find(productid);

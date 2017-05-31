@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Data/StationTradeDataItem.h"
 #include "StationBase.generated.h"
 
 USTRUCT(BlueprintType)
@@ -44,8 +45,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	TArray<FStationTradingItem> BuyList;
-	TArray<FStationTradingItem> SellList;
+	TArray<FStationTradeDataItem> BuyList;
+	TArray<FStationTradeDataItem> SellList;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Station")
 	int32 StationId;

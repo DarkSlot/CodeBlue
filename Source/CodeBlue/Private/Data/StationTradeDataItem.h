@@ -21,6 +21,17 @@ struct FStationTradeDataItem : public FTableRowBase
 
 	UPROPERTY(BlueprintReadOnly, Category = "Data")
 	int32 isBuy;
+
+	FStationTradeDataItem() {
+		userid = 0;
+		product = 0;
+		isBuy = 0;
+	}
+	FStationTradeDataItem(const FStationTradeDataItem &item) {
+		userid = item.userid;
+		product = item.product;
+		isBuy = item.isBuy;
+	}
 };
 //Key is station id
-typedef TMap<int32, FStationTradeDataItem> StationTradeList;
+typedef TMultiMap<int32, FStationTradeDataItem *> StationTradeList;
