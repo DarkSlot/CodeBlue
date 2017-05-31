@@ -9,7 +9,7 @@
 
 void UMainMarketFrameBase::UpdateList(FName MarketName) {
 	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
-	TMap<int32, FProductDataTable *> &InfoMap = GameInstance->DataProcesser->GetProductInfo();
+	TMap<int32, FProductInfoItem *> &InfoMap = GameInstance->DataProcesser->GetProductInfo();
 	for (auto info: InfoMap)
 	{
 		AddProductMenuItem(ProductLocalizationList::FindProductName(info.Value->productname), info.Key);

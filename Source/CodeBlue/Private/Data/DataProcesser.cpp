@@ -391,11 +391,11 @@ void UDataProcesser::Init() {
 
 	static const FString ContextString(TEXT("GENERAL"));
 
-	TArray<FProductDataTable *> ProductArray;
+	TArray<FProductInfoItem *> ProductArray;
 	ProductInfoDataTable->GetAllRows(ContextString, ProductArray);
 	for (auto row : ProductArray)
 	{
-		ProductInfo.Add(row->productid, new FProductDataTable(*row));
+		ProductInfo.Add(row->productid, new FProductInfoItem(*row));
 	}
 }
 
@@ -411,11 +411,11 @@ bool UDataProcesser::GetProductOrder(const int32 productid,
 	*list = nullptr;
 	return false;
 }
-TMap<int32, FProductDataTable *> &UDataProcesser::GetProductInfo() {
+TMap<int32, FProductInfoItem *> &UDataProcesser::GetProductInfo() {
 	return ProductInfo;
 }
 FString UDataProcesser::GetProductName(const int32 productid) {
-	FProductDataTable **info = ProductInfo.Find(productid);
+	FProductInfoItem **info = ProductInfo.Find(productid);
 	if (info)
 	{
 		return (*info)->productname;

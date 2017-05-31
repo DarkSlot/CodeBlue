@@ -6,7 +6,7 @@
 #include "ProductDataTable.generated.h"
 
 USTRUCT(Blueprintable)
-struct FProductDataTable : public FTableRowBase
+struct FProductInfoItem : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -26,20 +26,20 @@ struct FProductDataTable : public FTableRowBase
 	UPROPERTY(BlueprintReadOnly, Category = "Market")
 	float baseprice;
 
-	FProductDataTable() {
+	FProductInfoItem() {
 		productid = 0;
 		productname = TEXT("");
 		description = TEXT("");
 		baseprice = 0.0f;
 	}
-	FProductDataTable(const FProductDataTable &table) {
+	FProductInfoItem(const FProductInfoItem &table) {
 		productid = table.productid;
 		productname = table.productname;
 		description = table.description;
 		baseprice = table.baseprice;
 	}
-	FProductDataTable operator=(const FProductDataTable &table) {
-		FProductDataTable result;
+	FProductInfoItem operator=(const FProductInfoItem &table) {
+		FProductInfoItem result;
 		result.productid = table.productid;
 		result.productname = table.productname;
 		result.description = table.description;
