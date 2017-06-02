@@ -6,11 +6,9 @@ public class CodeBlue : ModuleRules
 {
 	public CodeBlue(ReadOnlyTargetRules Target):base(Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "AIModule", "GameplayTasks"/*, "CISQLite3" */});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "AIModule", "GameplayTasks", "CISQLite3" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "UMG" });
-        
-
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 

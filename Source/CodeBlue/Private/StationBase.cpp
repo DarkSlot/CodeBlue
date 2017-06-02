@@ -19,16 +19,16 @@ void AStationBase::BeginPlay()
 {
 	Super::BeginPlay();
 	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(GetGameInstance());
-	TArray<FStationTradeDataItem *> stationInfoList;
-	StationTradeList &InfoMap = GameInstance->DataProcesser->GetStationTradeInfo();
-	InfoMap.MultiFind(StationId, stationInfoList);
-	for (auto info: stationInfoList)
-	{
-		if (info->isBuy == 0)
-		{
-
-		}
-	}
+	//TArray<FStationInfoDataItem *> stationInfoList;
+	//StationTradeList &InfoMap = GameInstance->DataProcesser->GetStationTradeInfo();
+	//InfoMap.MultiFind(StationId, stationInfoList);
+	//for (auto info: stationInfoList)
+	//{
+	//	if (info->isBuy == 0)
+	//	{
+	//		SellList.Push(FStationInfoDataItem(info->userid,info->product,info->isBuy));
+	//	}
+	//}
 }
 
 // Called every frame

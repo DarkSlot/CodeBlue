@@ -399,15 +399,15 @@ void UDataProcesser::Init() {
 	{
 		ProductInfo.Add(row->productid, new FProductInfoItem(*row));
 	}
-	//station trade info
-	UDataTable *StationInfoDataTable = 
-		LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/StationTradeList.StationTradeList"));
-	TArray<FStationTradeDataItem *> StationInfoArray;
-	StationInfoDataTable->GetAllRows(ContextString, StationInfoArray);
-	for (auto row : StationInfoArray)
-	{
-		StationTradeInfo.Add(row->userid, new FStationTradeDataItem(*row));
-	}
+	////station trade info
+	//UDataTable *StationInfoDataTable = 
+	//	LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/StationTradeList.StationTradeList"));
+	//TArray<FStationInfoDataItem *> StationInfoArray;
+	//StationInfoDataTable->GetAllRows(ContextString, StationInfoArray);
+	//for (auto row : StationInfoArray)
+	//{
+	//	StationTradeInfo.Add(row->userid, new FStationInfoDataItem(*row));
+	//}
 }
 
 bool UDataProcesser::GetProductOrder(const int32 productid,
@@ -425,9 +425,9 @@ bool UDataProcesser::GetProductOrder(const int32 productid,
 TMap<int32, FProductInfoItem *> &UDataProcesser::GetProductInfo() {
 	return ProductInfo;
 }
-StationTradeList &UDataProcesser::GetStationTradeInfo() {
-	return StationTradeInfo;
-}
+//StationTradeList &UDataProcesser::GetStationTradeInfo() {
+//	return StationTradeInfo;
+//}
 FString UDataProcesser::GetProductName(const int32 productid) {
 	FProductInfoItem **info = ProductInfo.Find(productid);
 	if (info)
