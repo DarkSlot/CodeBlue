@@ -399,15 +399,15 @@ void UDataProcesser::Init() {
 	{
 		ProductInfo.Add(row->productid, new FProductInfoItem(*row));
 	}
-	////station trade info
-	//UDataTable *StationInfoDataTable = 
-	//	LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/StationTradeList.StationTradeList"));
-	//TArray<FStationInfoDataItem *> StationInfoArray;
-	//StationInfoDataTable->GetAllRows(ContextString, StationInfoArray);
-	//for (auto row : StationInfoArray)
-	//{
-	//	StationTradeInfo.Add(row->userid, new FStationInfoDataItem(*row));
-	//}
+	//user info
+	UDataTable *UserInfoDataTable = 
+		LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/UserData.UserData"));
+	TArray<FUserDataItem *> UserInfoArray;
+	UserInfoDataTable->GetAllRows(ContextString, UserInfoArray);
+	for (auto row : UserInfoArray)
+	{
+		UserData.Add(row->userid, FUserDataItem(*row));
+	}
 }
 
 bool UDataProcesser::GetProductOrder(const int32 productid,

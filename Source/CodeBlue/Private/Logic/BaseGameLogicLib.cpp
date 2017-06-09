@@ -3,7 +3,6 @@
 #include "CodeBlue.h"
 #include "BaseGameLogicLib.h"
 #include "../Market/MarketProcessCore.h"
-#include "../Market/Command/NewGameDataCommand.h"
 
 
 //void UBaseGameLogicLib::BeginNewGame() {

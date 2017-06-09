@@ -5,8 +5,10 @@
 #include "../GMGameInstance.h"
 #include "../Data/DataProcesser.h"
 
-ProduceLine::ProduceLine(int32 user, int32 station, int32 product, float basecircletime,
+ProduceLine::ProduceLine(UDataProcesser *processer, int32 lineid, int32 user, int32 station, int32 product, float basecircletime,
 	float basecircleproduction):
+	ProduceLineId(lineid),
+	DataProcesser(processer),
 	UserId(user),
 	StationId(station),
 	ProductId(product),
@@ -16,12 +18,15 @@ ProduceLine::ProduceLine(int32 user, int32 station, int32 product, float basecir
 	CircleTimeRate = 1.0f;
 	CircleTime = BaseCircleTime*CircleTimeRate;
 	CircleProductionRate = 1.0f;
-	CircleProduction = FMath::Floor(BaseCircleProduction*CircleProductionRate);
+	CircleProduction = FMath::FloorToInt(BaseCircleProduction*CircleProductionRate);
 	Timer = 0.0f;
 }
 
 ProduceLine::~ProduceLine()
 {
+}
+int32 ProduceLine::GetLineId() {
+	return ProduceLineId;
 }
 void ProduceLine::Produce(float DeltaTime) {
 	Timer += DeltaTime;

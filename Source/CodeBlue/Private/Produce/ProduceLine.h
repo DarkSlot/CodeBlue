@@ -11,12 +11,15 @@ class UDataProcesser;
 class ProduceLine
 {
 public:
-	ProduceLine(int32 user,int32 station,int32 product,float basecircletime,
+	ProduceLine(UDataProcesser *processer,int32 lineid,int32 user,int32 station,int32 product,float basecircletime,
 		float basecircleproduction);
 	~ProduceLine();
+	int32 GetLineId();
 
 	void Produce(float DeltaTime);
 private:
+	//Id of the Produce Line
+	int32 ProduceLineId;
 	//Owner of the Produce Line
 	int32 UserId;
 	//Location of the Produce Line

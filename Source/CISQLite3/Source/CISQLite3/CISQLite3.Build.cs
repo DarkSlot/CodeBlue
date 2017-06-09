@@ -6,9 +6,6 @@ public class CISQLite3 : ModuleRules
 {
   public CISQLite3(ReadOnlyTargetRules Target) : base(Target)
     {
-        //MinFilesUsingPrecompiledHeaderOverride = 8999;
-        //PrivatePCHHeaderFile = "CISQLite3PrivatePCH.h";
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicIncludePaths.AddRange(
       new string[] {
         "CISQLite3/Public"

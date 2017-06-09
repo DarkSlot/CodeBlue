@@ -6,6 +6,8 @@
 #include "Localization/ProductLocalizationList.h"
 #include "Blueprint/UserWidget.h"
 #include "Data/DataProcesser.h"
+#include "Produce/ProduceCenter.h"
+#include "Logic/AILogicManager.h"
 #include "GMGameInstance.generated.h"
 
 /**
@@ -28,6 +30,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void LoadGameDatabase();
 
+	void Tick(float DeltaTime);
+
 	ProductLocalizationList *ProductLocalizationList;
 
 	UPROPERTY(BlueprintReadWrite, Category = "UI")
@@ -35,4 +39,11 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Data")
 	UDataProcesser *DataProcesser;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Produce")
+	UProduceCenter *ProduceCenter;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Logic")
+	UAILogicManager *AILogicManager;
+	
 };

@@ -6,7 +6,9 @@
 #include "HAL/FileManager.h"
 
 
-UGMGameInstance::UGMGameInstance() {
+UGMGameInstance::UGMGameInstance():
+	ProduceCenter(nullptr),
+	AILogicManager(nullptr){
 	ProductLocalizationList::CreateLocalizationList();
 	//MarketProcessCore::StartGetInstance();
 }
@@ -25,8 +27,23 @@ void UGMGameInstance::CreateGameUI() {
 void UGMGameInstance::CreateNewGameData() {
 	DataProcesser = NewObject<UDataProcesser>();
 	DataProcesser->Init();
+	ProduceCenter = NewObject<UProduceCenter>();
+	ProduceCenter->Init(DataProcesser);
+	AILogicManager = NewObject<UAILogicManager>();
+
 }
 void UGMGameInstance::LoadGameDatabase() {
 
+}
+
+void UGMGameInstance::Tick(float DeltaTime) {
+	if (ProduceCenter)
+	{
+		ProduceCenter->Produce(DeltaTime);
+	}
+	if (AILogicManager)
+	{
+		AILogicManager->ProcessLogicUnits(DeltaTime);
+	}
 }
 

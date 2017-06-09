@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "UObject/NoExportTypes.h"
+#include "Engine/DataTable.h"
 #include "UserDataItem.generated.h"
 
 /**
  * 
  */
 USTRUCT(Blueprintable)
-struct FUserDataItem
+struct FUserDataItem : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -25,7 +25,29 @@ struct FUserDataItem
 	UPROPERTY(BlueprintReadOnly, Category = "Data")
 	int32 usertype;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Data")
+	UPROPERTY(BlueprintReadWrite, Category = "Data")
 	float money;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Data")
+	int32 AIType;
+
+	FUserDataItem():
+		userid(0),
+		username(""),
+		description(""),
+		usertype(0),
+		money(0.0f),
+		AIType(0){
+
+	}
+	FUserDataItem(const FUserDataItem& item) :
+		userid(item.userid),
+		username(item.username),
+		description(item.description),
+		usertype(item.usertype),
+		money(item.money),
+		AIType(item.AIType) {
+
+	}
 };
 typedef TMap<int32, FUserDataItem> UserList;

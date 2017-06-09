@@ -1,6 +1,6 @@
-#include "SQLiteDatabase.h"
-#include "CISQLite3PrivatePCH.h"
 
+#include "CISQLite3PrivatePCH.h"
+#include "SQLiteDatabase.h"
 #define LOGSQLITE(verbosity, text) UE_LOG(LogDatabase, verbosity, TEXT("SQLite: %s"), text)
 
 TMap<FString, FString> USQLiteDatabase::Databases;
