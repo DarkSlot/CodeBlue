@@ -50,3 +50,12 @@ void UProduceCenter::RemoveProduceLine(int32 lineid) {
 		}
 	}
 }
+void UProduceCenter::FindProduceLineByUser(int32 user, TArray<ProduceLine *> &lines) {
+	for (auto line: ProduceLineList)
+	{
+		if (line->GetUserId() == user)
+		{
+			lines.Add(line);
+		}
+	}
+}

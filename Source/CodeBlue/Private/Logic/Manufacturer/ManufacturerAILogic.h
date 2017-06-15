@@ -9,8 +9,10 @@
 class ManufacturerAILogic : public BaseAILogic
 {
 public:
-	ManufacturerAILogic(int32 UserId);
+	ManufacturerAILogic(int32 userId, UGMGameInstance *instance);
 	virtual ~ManufacturerAILogic();
 
 	virtual void RunLogic(float DeltaTime) override;
+private:
+	void ProcessLogic();
 };

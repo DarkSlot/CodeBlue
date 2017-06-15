@@ -22,6 +22,8 @@ public:
 
 	void AddProduceLine(int32 user, int32 station, int32 product);
 	void RemoveProduceLine(int32 lineid);
+
+	void FindProduceLineByUser(int32 user, TArray<ProduceLine *> &lines);
 private:
 	TArray<ProduceLine *> ProduceLineList;
 	UDataProcesser *DataProcesser;

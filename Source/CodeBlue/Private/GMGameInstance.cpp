@@ -27,10 +27,17 @@ void UGMGameInstance::CreateGameUI() {
 void UGMGameInstance::CreateNewGameData() {
 	DataProcesser = NewObject<UDataProcesser>();
 	DataProcesser->Init();
+	FUserDataItem item;
+	item.username = TEXT("Inf");
+	item.usertype = 0;
+	item.money = 50000.0f;
+	item.description = TEXT("");
+	item.AIType = 0;
+	MainUserId = DataProcesser->CreateNewUser(item);
 	ProduceCenter = NewObject<UProduceCenter>();
 	ProduceCenter->Init(DataProcesser);
 	AILogicManager = NewObject<UAILogicManager>();
-
+	AILogicManager->Init(this);
 }
 void UGMGameInstance::LoadGameDatabase() {
 

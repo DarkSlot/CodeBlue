@@ -154,6 +154,24 @@ void UDataProcesser::BuyProduct(const int32 productid, const float price, const 
 
 void UDataProcesser::SellProduct(const int32 productid, const float price, const int32 num,
 	const int32 userid, const int32 stationid) {
+	//remove stock
+	StationPropertyList *stationlist = PropertyData.Find(userid);
+	if (!stationlist)
+	{
+		return;
+	}
+	PropertyList *propertylist = stationlist->Find(stationid);
+	if (!propertylist)
+	{
+		return;
+	}
+	FPropertyDataItem *propertyitem = propertylist->Find(productid);
+	if (!propertyitem)
+	{
+		return;
+	}
+	propertyitem->num -= num;
+
 	FUserDataItem *selleritem = UserData.Find(userid);
 
 	TArray<FOrderDataItem *> RegroupedOrderList;
@@ -220,7 +238,7 @@ void UDataProcesser::SellProduct(const int32 productid, const float price, const
 				orderitem->stock = updated_order_num;
 			}
 			//add money for the seller
-			selleritem->money -= dealed_money;
+			selleritem->money += dealed_money;
 			//cost money for the buyer
 			buyeritem->money -= dealed_money;
 
@@ -296,24 +314,6 @@ void UDataProcesser::SellProduct(const int32 productid, const float price, const
 		}
 		orderlist->Add(new FOrderDataItem(0, productid, userid, stationid, RemainNum, price));
 		OnOrderListChanged.Broadcast(stationid, productid);
-
-		//remove stock
-		StationPropertyList *stationlist = PropertyData.Find(userid);
-		if (!stationlist)
-		{
-			stationlist = &(PropertyData.Add(userid));
-		}
-		PropertyList *propertylist = stationlist->Find(stationid);
-		if (!propertylist)
-		{
-			propertylist = &(stationlist->Add(stationid));
-		}
-		FPropertyDataItem *propertyitem = propertylist->Find(productid);
-		if (!propertyitem)
-		{
-			propertyitem = &(propertylist->Add(productid));
-		}
-		propertyitem->num -= RemainNum;
 	}
 }
 
@@ -408,6 +408,15 @@ void UDataProcesser::Init() {
 	{
 		UserData.Add(row->userid, FUserDataItem(*row));
 	}
+	//station info
+	UDataTable *StationInfoDataTable =
+		LoadObject<UDataTable>(nullptr, TEXT("/Game/Data/StationData.StationData"));
+	TArray<FStationInfoDataItem *> StationInfoArray;
+	StationInfoDataTable->GetAllRows(ContextString, StationInfoArray);
+	for (auto row : StationInfoArray)
+	{
+		StationData.Add(row->UserId, new FStationInfoDataItem(*row));
+	}
 }
 
 bool UDataProcesser::GetProductOrder(const int32 productid,
@@ -421,6 +430,11 @@ bool UDataProcesser::GetProductOrder(const int32 productid,
 	}
 	*list = nullptr;
 	return false;
+
+	
+}
+UserList &UDataProcesser::GetUserData() {
+	return UserData;
 }
 TMap<int32, FProductInfoItem *> &UDataProcesser::GetProductInfo() {
 	return ProductInfo;
@@ -437,6 +451,24 @@ FString UDataProcesser::GetProductName(const int32 productid) {
 	return TEXT("");
 }
 
+int32 UDataProcesser::CreateNewUser(FUserDataItem &item) {
+	int32 i = 10000;
+	while (true)
+	{
+		if (UserData.Contains(i))
+		{
+			i++;
+			continue;
+		}
+		else
+		{
+			break;
+		}
+	}
+	item.userid = i;
+	UserData.Add(i, item);
+	return i;
+}
 
 void UDataProcesser::RemoveOrder(FOrderDataItem *order) {
 	OnOrderListChanged.Broadcast(order->stationid, order->productid);

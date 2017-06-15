@@ -46,4 +46,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Logic")
 	UAILogicManager *AILogicManager;
 	
+	UPROPERTY(BlueprintReadWrite, Category = "Data")
+	int32 MainUserId;
 };

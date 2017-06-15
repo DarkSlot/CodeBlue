@@ -28,6 +28,15 @@ ProduceLine::~ProduceLine()
 int32 ProduceLine::GetLineId() {
 	return ProduceLineId;
 }
+int32 ProduceLine::GetUserId() {
+	return UserId;
+}
+int32 ProduceLine::GetStationId() {
+	return StationId;
+}
+int32 ProduceLine::GetProductId() {
+	return ProductId;
+}
 void ProduceLine::Produce(float DeltaTime) {
 	Timer += DeltaTime;
 	if (Timer>= CircleTime)

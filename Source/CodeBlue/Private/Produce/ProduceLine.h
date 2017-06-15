@@ -15,6 +15,9 @@ public:
 		float basecircleproduction);
 	~ProduceLine();
 	int32 GetLineId();
+	int32 GetUserId();
+	int32 GetStationId();
+	int32 GetProductId();
 
 	void Produce(float DeltaTime);
 private:

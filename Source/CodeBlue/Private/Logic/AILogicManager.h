@@ -9,7 +9,7 @@
 /**
  * 
  */
-class UDataProcesser;
+class UGMGameInstance;
 UCLASS()
 class UAILogicManager : public UObject
 {
@@ -18,9 +18,11 @@ public:
 	UAILogicManager();
 	~UAILogicManager();
 
-	void Init(UDataProcesser *dataProcesser);
+	void Init(UGMGameInstance *instance);
 
+	void AddLogicUnit(BaseAILogic *unit);
 	void ProcessLogicUnits(float DeltaTime);
 private:
+	UGMGameInstance *GameInstance;
 	TArray<BaseAILogic *> LogicUnits;
 };
