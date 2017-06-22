@@ -8,6 +8,7 @@
 #include "Data/DataProcesser.h"
 #include "Produce/ProduceCenter.h"
 #include "Logic/AILogicManager.h"
+#include "Ship/ShipManager.h"
 #include "GMGameInstance.generated.h"
 
 /**
@@ -48,4 +49,7 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Data")
 	int32 MainUserId;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Data")
+	AShipManager *CurrentShipManager;
 };

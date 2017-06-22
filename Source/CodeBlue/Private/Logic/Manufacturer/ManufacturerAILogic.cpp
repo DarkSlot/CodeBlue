@@ -5,6 +5,7 @@
 #include "../../Data/DataProcesser.h"
 #include "../../GMGameInstance.h"
 #include "../../Produce/ProduceCenter.h"
+#include "../../Ship/ShipManager.h"
 
 ManufacturerAILogic::ManufacturerAILogic(int32 UserId, UGMGameInstance *instance):
 	BaseAILogic(UserId, instance)
@@ -36,8 +37,18 @@ void ManufacturerAILogic::ProcessLogic() {
 		if (stock>1000)
 		{
 			FProductInfoItem *item = ProductInfo[line->GetProductId()];
-			GameInstance->DataProcesser->SellProduct(line->GetProductId(), item->baseprice,
-				1000,UserId, line->GetStationId());
+			FOrderDataItem *orderitem = GameInstance->DataProcesser->GetProductOrderByPrice(
+				line->GetProductId(), true);
+			if (orderitem&&orderitem->stationid!= line->GetStationId())
+			{
+				//send transport ship to another station
+				AShipManager *shipmanager = GameInstance->CurrentShipManager;
+			}
+			else
+			{
+				GameInstance->DataProcesser->SellProduct(line->GetProductId(), item->baseprice,
+					1000, UserId, line->GetStationId());
+			}
 		}
 	}
 }

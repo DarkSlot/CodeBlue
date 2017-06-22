@@ -14,16 +14,19 @@ void UDataProcesser::BuyProduct(const int32 productid, const float price, const 
 	if (stationOrderlist)
 	{
 		orderlist = stationOrderlist->Find(productid);
-		for (auto &order : *orderlist)
+		if (orderlist)
 		{
-			if (order->ordertype == 0)
+			for (auto &order : *orderlist)
 			{
-				RegroupedOrderList.Add(order);
+				if (order->ordertype == 0)
+				{
+					RegroupedOrderList.Add(order);
+				}
 			}
+			RegroupedOrderList.Sort([](const FOrderDataItem& A, const FOrderDataItem& B) {
+				return A.price < B.price;
+			});
 		}
-		RegroupedOrderList.Sort([](const FOrderDataItem& A, const FOrderDataItem& B) {
-			return A.price < B.price;
-		});
 	}
 	int32 allordernum = RegroupedOrderList.Num();
 	int32 RemainNum = num;
@@ -99,6 +102,10 @@ void UDataProcesser::BuyProduct(const int32 productid, const float price, const 
 			RemainNum = RemainNum - ordernum;
 			float avg_price = (orderprice + price)*0.5f;
 			float dealed_money = avg_price * ordernum;
+			if (buyeritem->money<dealed_money)
+			{
+				break;
+			}
 
 			//Remove the dealed stock
 			if (unsavedorder)
@@ -137,40 +144,46 @@ void UDataProcesser::BuyProduct(const int32 productid, const float price, const 
 	}
 	if (RemainNum > 0)
 	{
-		//add order
-		if (!stationOrderlist)
+		float dealed_money = price * RemainNum;
+		if (buyeritem->money>=dealed_money)
 		{
-			stationOrderlist = &(OrderData.Add(stationid));
-		}
-		if (!orderlist)
-		{
-			orderlist = &(stationOrderlist->Add(productid));
-		}
-		orderlist->Add(new FOrderDataItem(1,productid, userid, stationid, RemainNum, price));
+			//cost money
+			buyeritem->money -= dealed_money;
+			//add order
+			if (!stationOrderlist)
+			{
+				stationOrderlist = &(OrderData.Add(stationid));
+			}
+			if (!orderlist)
+			{
+				orderlist = &(stationOrderlist->Add(productid));
+			}
+			orderlist->Add(new FOrderDataItem(1, productid, userid, stationid, RemainNum, price));
 
-		OnOrderListChanged.Broadcast(stationid, productid);
+			OnOrderListChanged.Broadcast(stationid, productid);
+		}
 	}
 }
 
 void UDataProcesser::SellProduct(const int32 productid, const float price, const int32 num,
 	const int32 userid, const int32 stationid) {
 	//remove stock
-	StationPropertyList *stationlist = PropertyData.Find(userid);
-	if (!stationlist)
+	StationPropertyList *property_stationlist = PropertyData.Find(userid);
+	if (!property_stationlist)
 	{
 		return;
 	}
-	PropertyList *propertylist = stationlist->Find(stationid);
-	if (!propertylist)
+	PropertyList *property_propertylist = property_stationlist->Find(stationid);
+	if (!property_propertylist)
 	{
 		return;
 	}
-	FPropertyDataItem *propertyitem = propertylist->Find(productid);
-	if (!propertyitem)
+	FPropertyDataItem *property_propertyitem = property_propertylist->Find(productid);
+	if (!property_propertyitem)
 	{
 		return;
 	}
-	propertyitem->num -= num;
+	property_propertyitem->num -= num;
 
 	FUserDataItem *selleritem = UserData.Find(userid);
 
@@ -216,10 +229,6 @@ void UDataProcesser::SellProduct(const int32 productid, const float price, const
 			int updated_order_num = ordernum - RemainNum;
 			float avg_price = (orderprice + price)*0.5f;
 			float dealed_money = avg_price * RemainNum;
-			if (buyeritem->money<dealed_money)
-			{
-				break;
-			}
 			//Remove the dealed stock
 			if (ordernum == RemainNum)
 			{
@@ -239,8 +248,6 @@ void UDataProcesser::SellProduct(const int32 productid, const float price, const
 			}
 			//add money for the seller
 			selleritem->money += dealed_money;
-			//cost money for the buyer
-			buyeritem->money -= dealed_money;
 
 			//add product to user's property
 			StationPropertyList *stationlist = PropertyData.Find(buyerid);
@@ -279,8 +286,6 @@ void UDataProcesser::SellProduct(const int32 productid, const float price, const
 			}
 			//add money for the seller
 			selleritem->money += dealed_money;
-			//cost money for the buyer
-			buyeritem->money -= dealed_money;
 
 			//add product to user's property
 			//add product to user's property
@@ -357,6 +362,10 @@ bool UDataProcesser::CostProduct(const int32 productid, const int32 num,
 	{
 		return false;
 	}
+	if (propertyitem->num < num)
+	{
+		return false;
+	}
 	propertyitem->num -= num;
 	return true;
 }
@@ -430,8 +439,42 @@ bool UDataProcesser::GetProductOrder(const int32 productid,
 	}
 	*list = nullptr;
 	return false;
-
-	
+}
+void UDataProcesser::GetProductOrder(const int32 productid, const int32 userid,
+	const int32 stationid, OrderList &list) {
+	ProductOrderList *stationOrderlist = OrderData.Find(stationid);
+	if (stationOrderlist)
+	{
+		OrderList *orderlist = stationOrderlist->Find(productid);
+		if (orderlist)
+		{
+			for (auto &order: *orderlist)
+			{
+				if (order->userid == userid)
+				{
+					list.Add(order);
+				}
+			}
+		}
+	}
+}
+FOrderDataItem *UDataProcesser::GetProductOrderByPrice(const int32 productid, bool isHighest) {
+	FOrderDataItem *result = nullptr;
+	for (auto &station : OrderData)
+	{
+		for (auto &orderlist: station.Value)
+		{
+			for (auto &order: orderlist.Value)
+			{
+				if (result == nullptr||(isHighest&&result->price<order->price||
+					(!isHighest&&result->price>order->price)))
+				{
+					result = order;
+				}
+			}
+		}
+	}
+	return result;
 }
 UserList &UDataProcesser::GetUserData() {
 	return UserData;
@@ -439,9 +482,9 @@ UserList &UDataProcesser::GetUserData() {
 TMap<int32, FProductInfoItem *> &UDataProcesser::GetProductInfo() {
 	return ProductInfo;
 }
-//StationTradeList &UDataProcesser::GetStationTradeInfo() {
-//	return StationTradeInfo;
-//}
+StationInfoList &UDataProcesser::GetStationData() {
+	return StationData;
+}
 FString UDataProcesser::GetProductName(const int32 productid) {
 	FProductInfoItem **info = ProductInfo.Find(productid);
 	if (info)

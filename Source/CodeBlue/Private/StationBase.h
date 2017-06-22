@@ -4,8 +4,10 @@
 
 #include "GameFramework/Actor.h"
 #include "Data/StationInfoDataItem.h"
+#include "Buff/BuffStarving.h"
 #include "StationBase.generated.h"
 
+class UDataProcesser;
 UCLASS()
 class CODEBLUE_API AStationBase : public AActor
 {
@@ -18,8 +20,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Station")
 	int32 StationId;
@@ -29,4 +29,15 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Station")
 	float FuelCost;
+
+	float CostTimer;
+
+	UDataProcesser *DataProcesser;
+
+	BuffStarving m_BuffStarving;
+
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+	void DealFoodShortage(int32 starvinglvl);
 };

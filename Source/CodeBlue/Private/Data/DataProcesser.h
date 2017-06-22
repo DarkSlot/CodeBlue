@@ -45,8 +45,12 @@ public:
 	
 	void Init();
 	bool GetProductOrder(const int32 productid, const int32 stationid, OrderList **list);
+	void GetProductOrder(const int32 productid, const int32 userid,
+		const int32 stationid, OrderList &list);
+	FOrderDataItem *GetProductOrderByPrice(const int32 productid, bool isHighest);
 	UserList &GetUserData();
 	TMap<int32, FProductInfoItem *> &GetProductInfo();
+	StationInfoList &GetStationData();
 	FString GetProductName(const int32 productid);
 	int32 CreateNewUser(FUserDataItem &item);
 private:
