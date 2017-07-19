@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../ShipPawnBase.h"
+#include "ShipPawnBase.h"
 #include "ShipManager.generated.h"
 
 UCLASS()
@@ -15,9 +15,8 @@ class AShipManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AShipManager();
-
-	
-
+		
+	AShipPawnBase *SummonTransportShip(const FVector &pos);
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

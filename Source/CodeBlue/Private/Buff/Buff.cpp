@@ -16,7 +16,7 @@ bool Buff::IsActive() {
 	return bActive;
 }
 void Buff::Tick(float DeltaTime) {
-	BuffTimer += BuffDecay;
+	BuffTimer += BuffDecay*DeltaTime;
 }
 
 int32 Buff::GetLevel() {

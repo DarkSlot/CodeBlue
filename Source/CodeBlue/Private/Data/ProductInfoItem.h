@@ -20,6 +20,9 @@ struct FProductInfoItem : public FTableRowBase
 	FString description;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Market")
+	FString iconlink;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Market")
 	float baseprice;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Market")
@@ -56,6 +59,7 @@ struct FProductInfoItem : public FTableRowBase
 		productid = 0;
 		productname = TEXT("");
 		description = TEXT("");
+		iconlink = TEXT("");
 		baseprice = 0.0f;
 		BaseTime = 0.0f;
 		BaseProduction = 0.0f;
@@ -72,6 +76,7 @@ struct FProductInfoItem : public FTableRowBase
 		productid = table.productid;
 		productname = table.productname;
 		description = table.description;
+		iconlink = table.iconlink;
 		baseprice = table.baseprice;
 		BaseTime = table.BaseTime;
 		BaseProduction = table.BaseProduction;
@@ -89,6 +94,7 @@ struct FProductInfoItem : public FTableRowBase
 		result.productid = table.productid;
 		result.productname = table.productname;
 		result.description = table.description;
+		result.iconlink = table.iconlink;
 		result.baseprice = table.baseprice;
 		result.BaseTime = table.BaseTime;
 		result.BaseProduction = table.BaseProduction;

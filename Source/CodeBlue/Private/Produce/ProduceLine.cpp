@@ -42,6 +42,6 @@ void ProduceLine::Produce(float DeltaTime) {
 	if (Timer>= CircleTime)
 	{
 		Timer -= CircleTime;
-		DataProcesser->ProduceProduct(ProductId, CircleProduction, UserId, StationId);
+		DataProcesser->AddProperty(ProductId, CircleProduction, UserId, StationId);
 	}
 }

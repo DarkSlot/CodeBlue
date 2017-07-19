@@ -9,6 +9,7 @@
 #include "Produce/ProduceCenter.h"
 #include "Logic/AILogicManager.h"
 #include "Ship/ShipManager.h"
+#include "Station/StationManager.h"
 #include "GMGameInstance.generated.h"
 
 /**
@@ -46,6 +47,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Logic")
 	UAILogicManager *AILogicManager;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Station")
+	UStationManager *StationManager;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Data")
 	int32 MainUserId;

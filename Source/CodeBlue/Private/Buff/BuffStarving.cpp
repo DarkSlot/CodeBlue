@@ -14,9 +14,15 @@ BuffStarving::~BuffStarving() {
 void BuffStarving::Reset() {
 	BuffTimer = 0.0f;
 	BuffDecay = 1.0f;
+	BuffLevel = 0;
 }
 void BuffStarving::Tick(float DeltaTime) {
 	Buff::Tick(DeltaTime);
+	if (BuffTimer > 20.0f)
+	{
+		BuffTimer -= 20.0f;
+		BuffLevel++;
+	}
 }
 
 

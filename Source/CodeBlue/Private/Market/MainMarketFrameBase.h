@@ -19,7 +19,7 @@ public:
 	int32 CurrentProductId;
 
 	UFUNCTION(BlueprintCallable, Category = "Market")
-	void UpdateList(FName MarketName);
+	void UpdateList();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
 	void ClearOrderList();
@@ -31,10 +31,10 @@ public:
 	void UpdateOrderList(const int32 product,const int32 station);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
-	void AddSellOrderItem(const float price,const int32 stock);
+	void AddSellOrderItem(const float price,const int32 stock,const FString &updatetime);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Market")
-	void AddBuyOrderItem(const float price, const int32 stock);
+	void AddBuyOrderItem(const float price, const int32 stock, const FString &updatetime);
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Station")
 	int32 StationId;

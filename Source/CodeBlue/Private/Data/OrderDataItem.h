@@ -33,10 +33,13 @@ struct FOrderDataItem
 	int32 stationid;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Data")
-	int32 stock;
+	int32 num;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Data")
 	float price;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Data")
+	FString updatetime;
 
 	FOrderDataItem()
 		:unsaved(true),
@@ -45,20 +48,21 @@ struct FOrderDataItem
 		productid(0),
 		userid(0),
 		stationid(0),
-		stock(0),
+		num(0),
 		price(0.0f) {}
 
-	FOrderDataItem(int32 type, int32 product, int32 user, int32 station, int32 stocknum, float tradeprice)
+	FOrderDataItem(int32 type, int32 product, int32 user, int32 station, int32 stocknum, float tradeprice,FString time)
 		:unsaved(true),
 		orderid(0),
 		ordertype(type),
 		productid(product),
 		userid(user),
 		stationid(station),
-		stock(stocknum),
-		price(tradeprice) {}
+		num(stocknum),
+		price(tradeprice),
+		updatetime(time){}
 };
-typedef TArray<FOrderDataItem *> OrderList;
+typedef TArray<FOrderDataItem> OrderList;
 //key is productid
 typedef TMap<int32, OrderList> ProductOrderList;
 //key is stationid

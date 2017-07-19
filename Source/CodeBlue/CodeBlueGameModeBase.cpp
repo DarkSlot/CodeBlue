@@ -2,7 +2,7 @@
 
 #include "CodeBlue.h"
 #include "CodeBlueGameModeBase.h"
-#include "Private/ShipPlayerController.h"
+#include "Private/Ship/ShipPlayerController.h"
 
 ACodeBlueGameModeBase::ACodeBlueGameModeBase() {
 	// use our custom PlayerController class

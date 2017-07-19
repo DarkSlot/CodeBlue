@@ -7,7 +7,7 @@
 #include "../GMGameInstance.h"
 #include "../Data/DataProcesser.h"
 
-void UMainMarketFrameBase::UpdateList(FName MarketName) {
+void UMainMarketFrameBase::UpdateList() {
 	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
 	TMap<int32, FProductInfoItem *> &InfoMap = GameInstance->DataProcesser->GetProductInfo();
 	for (auto info: InfoMap)
@@ -19,62 +19,22 @@ void UMainMarketFrameBase::UpdateOrderList(const int32 product, const int32 stat
 	CurrentProductId = product;
 	ClearOrderList();
 	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
-	OrderList *orderlist;
-	GameInstance->DataProcesser->GetProductOrder(product, station,&orderlist);
-	if (orderlist)
+	OrderList orderlist;
+	GameInstance->DataProcesser->GetProductOrder(product, station,orderlist);
+	if (orderlist.Num()>0)
 	{
-		for (auto order : *orderlist)
+		for (auto &order : orderlist)
 		{
-			if (order->ordertype == 0)
+			if (order.ordertype == 0)
 			{
-				AddSellOrderItem(order->price, order->stock);
+				AddSellOrderItem(order.price, order.num, order.updatetime);
 			}
 			else
 			{
-				AddBuyOrderItem(order->price, order->stock);
+				AddBuyOrderItem(order.price, order.num, order.updatetime);
 			}
 		}
 	}
-	//FString product_sql = TEXT("select * from ProductOrder where productid =");
-	//product_sql.AppendInt(product);
-	//FSQLiteQueryResult result = USQLiteDatabase::GetData(TEXT("market"), product_sql);
-	//if (result.Success)
-	//{
-	//	for (auto &row : result.ResultRows)
-	//	{
-	//		int32 ordertype = 0;
-	//		int32 userid = 0;
-	//		int32 stock = 0;
-	//		float price = 0.0f;
-	//		for (auto &item : row.Fields)
-	//		{
-	//			if (item.Key == TEXT("ordertype"))
-	//			{
-	//				ordertype =	FCString::Atoi(*item.Value);
-	//			}
-	//			else if (item.Key == TEXT("userid"))
-	//			{
-	//				userid = FCString::Atoi(*item.Value);
-	//			}
-	//			else if (item.Key == TEXT("stock"))
-	//			{
-	//				stock = FCString::Atof(*item.Value);
-	//			}
-	//			else if (item.Key == TEXT("price"))
-	//			{
-	//				price = FCString::Atof(*item.Value);
-	//			}
-	//		}
-	//		if (ordertype == 0)
-	//		{
-	//			AddSellOrderItem(price, stock);
-	//		}
-	//		else if (ordertype == 1)
-	//		{
-	//			AddBuyOrderItem(price,stock);
-	//		}
-	//	}
-	//}
 }
 
 

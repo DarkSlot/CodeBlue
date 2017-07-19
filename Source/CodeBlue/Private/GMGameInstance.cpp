@@ -38,6 +38,8 @@ void UGMGameInstance::CreateNewGameData() {
 	ProduceCenter->Init(DataProcesser);
 	AILogicManager = NewObject<UAILogicManager>();
 	AILogicManager->Init(this);
+	StationManager = NewObject<UStationManager>();
+	//StationManager->Init(this);
 }
 void UGMGameInstance::LoadGameDatabase() {
 

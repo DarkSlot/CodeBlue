@@ -2,7 +2,7 @@
 
 #include "CodeBlue.h"
 #include "StartUpGameMode.h"
-#include "ShipPlayerController.h"
+#include "Ship/ShipPlayerController.h"
 
 
 AStartUpGameMode::AStartUpGameMode() {

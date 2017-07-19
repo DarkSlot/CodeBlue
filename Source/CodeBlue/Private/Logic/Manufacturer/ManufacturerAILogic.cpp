@@ -6,6 +6,9 @@
 #include "../../GMGameInstance.h"
 #include "../../Produce/ProduceCenter.h"
 #include "../../Ship/ShipManager.h"
+#include "../../Station/StationManager.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "AIController.h"
 
 ManufacturerAILogic::ManufacturerAILogic(int32 UserId, UGMGameInstance *instance):
 	BaseAILogic(UserId, instance)
@@ -37,12 +40,32 @@ void ManufacturerAILogic::ProcessLogic() {
 		if (stock>1000)
 		{
 			FProductInfoItem *item = ProductInfo[line->GetProductId()];
-			FOrderDataItem *orderitem = GameInstance->DataProcesser->GetProductOrderByPrice(
-				line->GetProductId(), true);
-			if (orderitem&&orderitem->stationid!= line->GetStationId())
+			float price;
+			int32 targetstaion = GameInstance->DataProcesser->GetSuitableStationByPrice(
+				line->GetProductId(), true, price);
+			if (targetstaion>0&& targetstaion != line->GetStationId())
 			{
 				//send transport ship to another station
+				UStationManager *stationManager = GameInstance->StationManager;
+				FVector startpos = stationManager->GetStationById(line->GetStationId())->GetActorLocation();
+				startpos += FVector(1000.0f,0.0f,0.0f);
+				FVector targetpos = stationManager->GetStationById(targetstaion)->GetActorLocation();
 				AShipManager *shipmanager = GameInstance->CurrentShipManager;
+				AShipPawnBase *ship = shipmanager->SummonTransportShip(startpos);
+				if (ship)
+				{
+					AAIController *controller = Cast<AAIController>(ship->GetController());
+					if (controller)
+					{
+						UBlackboardComponent *component = controller->GetBlackboardComponent();
+						component->SetValueAsInt("Product", line->GetProductId());
+						component->SetValueAsInt("Number", stock);
+						component->SetValueAsInt("User", UserId);
+						component->SetValueAsFloat("Price", price);
+						component->SetValueAsObject("StartStation", stationManager->GetStationById(line->GetStationId()));
+						component->SetValueAsObject("EndStation", stationManager->GetStationById(targetstaion));
+					}
+				}
 			}
 			else
 			{

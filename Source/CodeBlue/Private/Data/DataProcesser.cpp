@@ -5,389 +5,283 @@
 
 void UDataProcesser::BuyProduct(const int32 productid, const float price, const int32 num,
 	const int32 userid, const int32 stationid) {
-	FUserDataItem *buyeritem = UserData.Find(userid);
-
-	TArray<FOrderDataItem *> RegroupedOrderList;
-
-	ProductOrderList *stationOrderlist = OrderData.Find(stationid);
-	OrderList *orderlist = nullptr;
-	if (stationOrderlist)
-	{
-		orderlist = stationOrderlist->Find(productid);
-		if (orderlist)
-		{
-			for (auto &order : *orderlist)
-			{
-				if (order->ordertype == 0)
-				{
-					RegroupedOrderList.Add(order);
-				}
-			}
-			RegroupedOrderList.Sort([](const FOrderDataItem& A, const FOrderDataItem& B) {
-				return A.price < B.price;
-			});
-		}
-	}
-	int32 allordernum = RegroupedOrderList.Num();
 	int32 RemainNum = num;
-	for (int32 i = 0; i < allordernum; i++)
+
+	FString order_sql = FString::Printf(
+		TEXT("select orderid,num,price,userid from ProductOrder "
+			"where `productid` =%d and `stationid`=%d and ordertype = 0 order by price"),
+		productid, stationid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(order_sql);
+	if (result.Success)
 	{
-		if (RemainNum <= 0)
+		int32 orderrownum = result.Rows.Num();
+		for (int32 i = 0; i < orderrownum; i++)
 		{
-			break;
-		}
-		FOrderDataItem *orderitem = RegroupedOrderList[i];
-		FUserDataItem *selleritem = &(UserData[orderitem->userid]);
-		float orderprice = orderitem->price;
-		if (orderprice>price)
-		{
-			break;
-		}
-		bool unsavedorder = orderitem->unsaved;
-		int orderid = orderitem->orderid;
-		int ordernum = orderitem->stock;
-		int sellerid = orderitem->userid;
-		if (ordernum >= RemainNum)
-		{
-			int updated_order_num = ordernum - RemainNum;
-			float avg_price = (orderprice + price)*0.5f;
-			float dealed_money = avg_price * RemainNum;
-			if (buyeritem->money<dealed_money)
+			if (RemainNum<=0)
 			{
 				break;
 			}
-			//Remove the dealed stock
-			if (ordernum == RemainNum)
-			{
-				if (unsavedorder)
-				{
-					RemoveOrder(orderitem);
-				}
-				else
-				{
-					RemovedOrderList.Add(orderid);
-					RemoveOrder(orderitem);
-				}
-			}
-			else
-			{
-				orderitem->stock = updated_order_num;
-			}
-			//add money for the seller
-			selleritem->money += dealed_money;
-			//cost money for the buyer
-			buyeritem->money -= dealed_money;
-
-			//add product to user's property
-			StationPropertyList *stationlist = PropertyData.Find(sellerid);
-			if (!stationlist)
-			{
-				stationlist = &(PropertyData.Add(sellerid));
-			}
-			PropertyList *propertylist = stationlist->Find(stationid);
-			if (!propertylist)
-			{
-				propertylist = &(stationlist->Add(stationid));
-			}
-			FPropertyDataItem *propertyitem = propertylist->Find(productid);
-			if (!propertyitem)
-			{
-				propertyitem = &(propertylist->Add(productid));
-			}
-			propertyitem->num += RemainNum;
-			RemainNum = 0;
-		}
-		else
-		{
-			RemainNum = RemainNum - ordernum;
-			float avg_price = (orderprice + price)*0.5f;
-			float dealed_money = avg_price * ordernum;
-			if (buyeritem->money<dealed_money)
+			TMap<FString, SQLiteField> &row = result.Rows[i].Fields;
+			float orderprice = row["price"].RealValue;
+			if (orderprice>price)
 			{
 				break;
 			}
+			int orderid = row["orderid"].IntValue;
+			int ordernum = row["num"].IntValue;
+			int sellerid = row["userid"].IntValue;
+			if (ordernum>RemainNum)
+			{
+				int updated_order_num = ordernum - RemainNum;
+				float dealed_money = orderprice * RemainNum;
+				//cost money for the buyer
+				if (!CostMoney(dealed_money,userid))
+				{
+					break;
+				}
 
-			//Remove the dealed stock
-			if (unsavedorder)
-			{
-				RemoveOrder(orderitem);
-			}
-			else
-			{
-				RemovedOrderList.Add(orderid);
-				RemoveOrder(orderitem);
-			}
-			//add money for the seller
-			selleritem->money += dealed_money;
-			//cost money for the buyer
-			buyeritem->money -= dealed_money;
+				//Remove the dealed stock
+				UpdateOrderNum(orderid, updated_order_num);
+				if (OnOrderListChanged.IsBound())
+				{
+					OnOrderListChanged.Broadcast(stationid, productid);
+				}
+				//add money for the seller
+				AddMoney(dealed_money,sellerid);
 
-			//add product to user's property
-			//add product to user's property
-			StationPropertyList *stationlist = PropertyData.Find(sellerid);
-			if (!stationlist)
-			{
-				stationlist = &(PropertyData.Add(sellerid));
+				//add product to user's property
+				AddProperty(productid, RemainNum, userid, stationid);
+				RemainNum = 0;
 			}
-			PropertyList *propertylist = stationlist->Find(stationid);
-			if (!propertylist)
+			else 
 			{
-				propertylist = &(stationlist->Add(stationid));
+				RemainNum = RemainNum - ordernum;
+				float dealed_money = orderprice * ordernum;
+				//cost money for the buyer
+				if (!CostMoney(dealed_money, userid))
+				{
+					break;
+				}
+				//Remove the dealed stock
+				RemoveOrder(orderid);
+				if (OnOrderListChanged.IsBound())
+				{
+					OnOrderListChanged.Broadcast(stationid, productid);
+				}
+				//add money for the seller
+				AddMoney(dealed_money, sellerid);
+				//add product to user's property
+				AddProperty(productid, ordernum, userid, stationid);
 			}
-			FPropertyDataItem *propertyitem = propertylist->Find(productid);
-			if (!propertyitem)
-			{
-				propertyitem = &(propertylist->Add(productid));
-			}
-			propertyitem->num += RemainNum;
 		}
 	}
 	if (RemainNum > 0)
 	{
 		float dealed_money = price * RemainNum;
-		if (buyeritem->money>=dealed_money)
+		if (CostMoney(dealed_money, userid))
 		{
-			//cost money
-			buyeritem->money -= dealed_money;
-			//add order
-			if (!stationOrderlist)
-			{
-				stationOrderlist = &(OrderData.Add(stationid));
-			}
-			if (!orderlist)
-			{
-				orderlist = &(stationOrderlist->Add(productid));
-			}
-			orderlist->Add(new FOrderDataItem(1, productid, userid, stationid, RemainNum, price));
-
-			OnOrderListChanged.Broadcast(stationid, productid);
+			AddOrder(1, productid, price, RemainNum, userid, stationid);
 		}
 	}
 }
 
 void UDataProcesser::SellProduct(const int32 productid, const float price, const int32 num,
 	const int32 userid, const int32 stationid) {
-	//remove stock
-	StationPropertyList *property_stationlist = PropertyData.Find(userid);
-	if (!property_stationlist)
+	if (!ReduceProperty(productid,num,userid,stationid))
 	{
 		return;
 	}
-	PropertyList *property_propertylist = property_stationlist->Find(stationid);
-	if (!property_propertylist)
-	{
-		return;
-	}
-	FPropertyDataItem *property_propertyitem = property_propertylist->Find(productid);
-	if (!property_propertyitem)
-	{
-		return;
-	}
-	property_propertyitem->num -= num;
-
-	FUserDataItem *selleritem = UserData.Find(userid);
-
-	TArray<FOrderDataItem *> RegroupedOrderList;
-	OrderList *orderlist = nullptr;
-	ProductOrderList *stationOrderlist = OrderData.Find(stationid);
-	if (stationOrderlist)
-	{
-		orderlist = stationOrderlist->Find(productid);
-
-		for (auto &order : *orderlist)
-		{
-			if (order->ordertype == 1)
-			{
-				RegroupedOrderList.Add(order);
-			}
-		}
-		RegroupedOrderList.Sort([](const FOrderDataItem& A, const FOrderDataItem& B) {
-			return A.price > B.price;
-		});
-	}
-	int32 allordernum = RegroupedOrderList.Num();
 	int32 RemainNum = num;
-	for (int32 i = 0; i < allordernum; i++)
+	FString product_sql = FString::Printf(
+		TEXT("select `orderid`,`num`,`price`,`userid` from ProductOrder"
+			" where `productid` =%d and `stationid`=%d and ordertype = 1 order by price desc"),
+		productid, stationid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(product_sql);
+	if (result.Success)
 	{
-		if (RemainNum <= 0)
+		int32 orderownum = result.Rows.Num();
+		for (int32 i = 0; i < orderownum; i++)
 		{
-			break;
-		}
-		FOrderDataItem *orderitem = RegroupedOrderList[i];
-		FUserDataItem *buyeritem = &(UserData[orderitem->userid]);
-		float orderprice = orderitem->price;
-		if (orderprice<price)
-		{
-			break;
-		}
-		bool unsavedorder = orderitem->unsaved;
-		int orderid = orderitem->orderid;
-		int ordernum = orderitem->stock;
-		int buyerid = orderitem->userid;
-		if (ordernum >= RemainNum)
-		{
-			int updated_order_num = ordernum - RemainNum;
-			float avg_price = (orderprice + price)*0.5f;
-			float dealed_money = avg_price * RemainNum;
-			//Remove the dealed stock
-			if (ordernum == RemainNum)
+			if (RemainNum <= 0)
 			{
-				if (unsavedorder)
+				break;
+			}
+			float orderprice = result.Rows[i].Fields["price"].RealValue;
+			if (orderprice < price)
+			{
+				break;
+			}
+			TMap<FString, SQLiteField> &row = result.Rows[i].Fields;
+			int orderid = row["orderid"].IntValue;
+			int ordernum = row["num"].IntValue;
+			int buyerid = row["userid"].IntValue;
+			if (ordernum > RemainNum)
+			{
+				int updated_order_num = ordernum - RemainNum;
+				float dealed_money = orderprice * RemainNum;
+				//add property for the buyer
+				AddProperty(productid, RemainNum, buyerid, stationid);
+				//Remove the dealed stock
+				UpdateOrderNum(orderid,updated_order_num);
+				if (OnOrderListChanged.IsBound())
 				{
-					RemoveOrder(orderitem);
+					OnOrderListChanged.Broadcast(stationid, userid);
 				}
-				else
-				{
-					RemovedOrderList.Add(orderid);
-					RemoveOrder(orderitem);
-				}
+				//add money for the seller
+				AddMoney(dealed_money, userid);
+				RemainNum = 0;
 			}
 			else
 			{
-				orderitem->stock = updated_order_num;
+				RemainNum = RemainNum - ordernum;
+				float dealed_money = orderprice * ordernum;
+				//add property for the buyer
+				AddProperty(productid, ordernum, buyerid, stationid);
+				//Remove the dealed stock
+				RemoveOrder(orderid);
+				if (OnOrderListChanged.IsBound())
+				{
+					OnOrderListChanged.Broadcast(stationid, productid);
+				}
+				//add money for the seller
+				AddMoney(dealed_money, userid);
 			}
-			//add money for the seller
-			selleritem->money += dealed_money;
-
-			//add product to user's property
-			StationPropertyList *stationlist = PropertyData.Find(buyerid);
-			if (!stationlist)
-			{
-				stationlist = &(PropertyData.Add(buyerid));
-			}
-			PropertyList *propertylist = stationlist->Find(stationid);
-			if (!propertylist)
-			{
-				propertylist = &(stationlist->Add(stationid));
-			}
-			FPropertyDataItem *propertyitem = propertylist->Find(productid);
-			if (!propertyitem)
-			{
-				propertyitem = &(propertylist->Add(productid));
-			}
-			propertyitem->num += RemainNum;
-			RemainNum = 0;
-		}
-		else
-		{
-			RemainNum = RemainNum - ordernum;
-			float avg_price = (orderprice + price)*0.5f;
-			float dealed_money = avg_price * ordernum;
-
-			//Remove the dealed stock
-			if (unsavedorder)
-			{
-				RemoveOrder(orderitem);
-			}
-			else
-			{
-				RemovedOrderList.Add(orderid);
-				RemoveOrder(orderitem);
-			}
-			//add money for the seller
-			selleritem->money += dealed_money;
-
-			//add product to user's property
-			//add product to user's property
-			StationPropertyList *stationlist = PropertyData.Find(buyerid);
-			if (!stationlist)
-			{
-				stationlist = &(PropertyData.Add(buyerid));
-			}
-			PropertyList *propertylist = stationlist->Find(stationid);
-			if (!propertylist)
-			{
-				propertylist = &(stationlist->Add(stationid));
-			}
-			FPropertyDataItem *propertyitem = propertylist->Find(productid);
-			if (!propertyitem)
-			{
-				propertyitem = &(propertylist->Add(productid));
-			}
-			propertyitem->num += RemainNum;
 		}
 	}
 	if (RemainNum > 0)
 	{
-		if (!stationOrderlist)
-		{
-			stationOrderlist = &(OrderData.Add(stationid));
-		}
-		if (!orderlist)
-		{
-			orderlist = &(stationOrderlist->Add(productid));
-		}
-		orderlist->Add(new FOrderDataItem(0, productid, userid, stationid, RemainNum, price));
+		AddOrder(0, productid, price, RemainNum, userid, stationid);
+	}
+}
+
+void UDataProcesser::AddOrder(const int32 ordertype, const int32 productid, const float price,
+	const int32 num, const int32 userid, const int32 stationid) {
+	FString publish_order_sql = FString::Printf(
+		TEXT("insert into `ProductOrder`(`ordertype`,`productid`,`userid`,`stationid`,`num`,`price`,'updatetime')"
+			" VALUES(%d, %d, %d,%d, %d, %f,datetime('now'));"), ordertype, productid, userid, stationid, num, price);
+	SqliteLib->ExecuteNoQuery(publish_order_sql);
+
+	if (OnOrderListChanged.IsBound())
+	{
 		OnOrderListChanged.Broadcast(stationid, productid);
 	}
 }
 
-
-bool UDataProcesser::ProduceProduct(const int32 productid, const int32 num,
-	const int32 userid, const int32 stationid) {
-	//add product to user's property
-	StationPropertyList *stationlist = PropertyData.Find(userid);
-	if (!stationlist)
-	{
-		stationlist = &(PropertyData.Add(userid));
-	}
-	PropertyList *propertylist = stationlist->Find(stationid);
-	if (!propertylist)
-	{
-		propertylist = &(stationlist->Add(stationid));
-	}
-	FPropertyDataItem *propertyitem = propertylist->Find(productid);
-	if (!propertyitem)
-	{
-		propertyitem = &(propertylist->Add(productid));
-	}
-	propertyitem->num += num;
-	return true;
+void UDataProcesser::RemoveOrder(const int32 orderid) {
+	FString remove_sql = FString::Printf(
+		TEXT("delete from `ProductOrder`  where orderid = %d"), orderid);
+	SqliteLib->ExecuteNoQuery(remove_sql);
 }
-bool UDataProcesser::CostProduct(const int32 productid, const int32 num,
+
+void UDataProcesser::UpdateOrderNum(const int32 orderid, const int32 num) {
+	FString update_num_sql = FString::Printf(
+		TEXT("update `ProductOrder` set `num` = %d,`updatetime`=datetime('now') where orderid = %d"), num, orderid);
+	SqliteLib->ExecuteNoQuery(update_num_sql);
+}
+
+void UDataProcesser::UpdateOrderPrice(const int32 orderid, const float price) {
+	FString update_price_sql = FString::Printf(
+		TEXT("update `ProductOrder` set `price` = %f,`updatetime`=datetime('now') where orderid = %d"), price, orderid);
+	SqliteLib->ExecuteNoQuery(update_price_sql);
+	if (OnOrderListChanged.IsBound())
+	{
+		FString order_sql = FString::Printf(
+			TEXT("select `productid`,`stationid` from ProductOrder"
+				" where `orderid` =%d"),orderid);
+		SQLiteResult result = SqliteLib->ExecuteQuery(order_sql);
+		if (result.Success&&result.Rows.Num()>0)
+		{
+			TMap<FString, SQLiteField> &row = result.Rows[0].Fields;
+			OnOrderListChanged.Broadcast(row["stationid"].IntValue, row["productid"].IntValue);
+		}
+	}
+}
+bool UDataProcesser::AddProperty(const int32 productid, const int32 num,
 	const int32 userid, const int32 stationid) {
-	//add product to user's property
-	StationPropertyList *stationlist = PropertyData.Find(userid);
-	if (!stationlist)
+	FString update_property_sql = FString::Printf(TEXT("update Property set `num` = `num` + %d"
+		" where `userid` = %d and `stationid` = %d and `productid` = %d"
+		), num, userid, stationid, productid);
+	int32 affected = SqliteLib->ExecuteNoQuery(update_property_sql);
+	if (affected == 0)
+	{
+		FString add_property_sql = FString::Printf(TEXT("insert into Property"
+			"(`userid`,`stationid`,`productid`,`num`) values(%d,%d,%d,%d)"
+		), userid, stationid, productid, num);
+		affected = SqliteLib->ExecuteNoQuery(add_property_sql);
+	}
+	return (affected ==1);
+}
+
+bool UDataProcesser::ReduceProperty(const int32 productid, const int32 num,
+	const int32 userid, const int32 stationid) {
+	FString update_property_sql = FString::Printf(TEXT("update Property set `num` = `num` - %d"
+		" where `userid` = %d and `stationid` = %d and `productid` = %d and `num`>= %d"
+	), num, userid, stationid, productid, num);
+	int32 affected = SqliteLib->ExecuteNoQuery(update_property_sql);
+	return (affected == 1);
+}
+
+bool UDataProcesser::AddMoney(const float num, const int32 userid) {
+	if (num<0.0f)
 	{
 		return false;
 	}
-	PropertyList *propertylist = stationlist->Find(stationid);
-	if (!propertylist)
+	FUserDataItem *useritem = UserData.Find(userid);
+	if (useritem)
+	{
+		useritem->money += num;
+		return true;
+	}
+	return false;
+}
+bool UDataProcesser::CostMoney(const float num, const int32 userid) {
+	if (num<0.0f)
 	{
 		return false;
 	}
-	FPropertyDataItem *propertyitem = propertylist->Find(productid);
-	if (!propertyitem)
+	FUserDataItem *useritem = UserData.Find(userid);
+	if (useritem)
 	{
-		return false;
+		if (useritem->money<num)
+		{
+			return false;
+		}
+		useritem->money -= num;
+		return true;
 	}
-	if (propertyitem->num < num)
+	return false;
+}
+float UDataProcesser::CheckMoney(const int32 userid) {
+	FUserDataItem *useritem = UserData.Find(userid);
+	if (useritem)
 	{
-		return false;
+		return useritem->money;
 	}
-	propertyitem->num -= num;
-	return true;
+	return 0.0f;
 }
 
 int32 UDataProcesser::CheckProductStock(const int32 productid,
 	const int32 userid, const int32 stationid) {
-	StationPropertyList *stationlist = PropertyData.Find(userid);
-	if (!stationlist)
+	FString property_sql = FString::Printf(
+		TEXT("select `num` from Property"
+			" where `userid` =%d and `stationid`=%d and `productid`=%d"), userid,
+		stationid, productid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(property_sql);
+	if (result.Success&&result.Rows.Num()>0)
 	{
-		return 0;
+		return result.Rows[0].Fields["num"].IntValue;
 	}
-	PropertyList *propertylist = stationlist->Find(stationid);
-	if (!propertylist)
+	return 0;
+}
+UTexture2D *UDataProcesser::GetProductIcon(const int32 productid) {
+	FProductInfoItem **info = ProductInfo.Find(productid);
+	if (info)
 	{
-		return 0;
+		FString path = (*info)->iconlink;
+		UTexture2D* texture = LoadObject<UTexture2D>(nullptr, *path);
+		if (texture) return texture;
 	}
-	FPropertyDataItem *propertyitem = propertylist->Find(productid);
-	if (!propertyitem)
-	{
-		return 0;
-	}
-	return propertyitem->num;
+	return nullptr;
 }
 //FOnOrderListChanged &UDataProcesser::GetOrderListChangeEvent(
 //	const int32 stationid, const int32 productid) {
@@ -426,55 +320,147 @@ void UDataProcesser::Init() {
 	{
 		StationData.Add(row->UserId, new FStationInfoDataItem(*row));
 	}
+	SqliteLib = NewObject<USQLiteLibrary>(this);
+	SqliteLib->NewDatabase();
+	//property table
+	FString create_property_sql = TEXT("CREATE TABLE `Property` ( "
+		" `userid` INTEGER NOT NULL, `stationid` INTEGER NOT NULL, `productid` INTEGER NOT NULL,"
+		" `num` INTEGER NOT NULL DEFAULT 0,"
+		" PRIMARY KEY(`userid`,`stationid`,`productid`))");
+	SqliteLib->ExecuteNoQuery(create_property_sql);
+	//order table
+	FString create_order_sql = TEXT("CREATE TABLE `ProductOrder` ( "
+		"`orderid` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "
+		"`ordertype` INTEGER NOT NULL, `productid` INTEGER NOT NULL, "
+		"`userid` INTEGER NOT NULL, `stationid` INTEGER NOT NULL DEFAULT 0, "
+		"`num` INTEGER NOT NULL, `price` Real NOT NULL, `updatetime` TEXT NOT NULL )");
+	SqliteLib->ExecuteNoQuery(create_order_sql);
+	FString create_index0_sql = TEXT("CREATE INDEX `orderindex0` ON "
+		"`ProductOrder` (`productid` ,`stationid` )");
+	SqliteLib->ExecuteNoQuery(create_index0_sql);
+	FString create_index1_sql = TEXT("CREATE INDEX `orderindex1` ON "
+		"`ProductOrder` (`productid` ,`stationid`, 'userid')");
+	SqliteLib->ExecuteNoQuery(create_index1_sql);
 }
 
-bool UDataProcesser::GetProductOrder(const int32 productid,
-	const int32 stationid, OrderList **list) {
-	ProductOrderList *stationOrderlist = OrderData.Find(stationid);
-	if (stationOrderlist)
+bool UDataProcesser::GetProductOrder(const int32 productid, const int32 stationid, OrderList &list) {
+	FString query_sql = FString::Printf(TEXT("select * from `ProductOrder`"
+		" where productid = %d and stationid = %d"), productid, stationid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(query_sql);
+	if (result.Success)
 	{
-		OrderList *orderlist = stationOrderlist->Find(productid);
-		*list = orderlist;
+		int32 numrow = result.Rows.Num();
+		for (int32 i = 0; i < numrow; i++)
+		{
+			TMap<FString, SQLiteField> &row = result.Rows[i].Fields;
+			int32 orderid = row["orderid"].IntValue;
+			int32 ordertype = row["ordertype"].IntValue;
+			int32 pid = row["productid"].IntValue;
+			int32 userid = row["userid"].IntValue;
+			int32 sid = row["stationid"].IntValue;
+			int32 num = row["num"].IntValue;
+			float price = row["price"].RealValue;
+			FString updatetime = row["updatetime"].StringValue;
+			list.Add(FOrderDataItem(ordertype, pid,userid, sid,num,price, updatetime));
+		}
 		return true;
 	}
-	*list = nullptr;
 	return false;
 }
-void UDataProcesser::GetProductOrder(const int32 productid, const int32 userid,
-	const int32 stationid, OrderList &list) {
-	ProductOrderList *stationOrderlist = OrderData.Find(stationid);
-	if (stationOrderlist)
+bool UDataProcesser::GetProductOrderByPrice(const int32 productid,
+	const int32 stationid, bool isHighest, FOrderDataItem &item) {
+	FString priceorder = isHighest ? TEXT("desc ") : TEXT("");
+	int32 ordertype = isHighest ? 1 : 0;
+	FString query_sql = FString::Printf(TEXT("select `stationid` from `ProductOrder`"
+		" where `productid` = %d and `stationid`=%d and `ordertype`=%d order by `price` %slimit 1"),
+		productid, stationid, ordertype,*priceorder);
+	SQLiteResult result = SqliteLib->ExecuteQuery(query_sql);
+	if (result.Success&&result.Rows.Num()>0)
 	{
-		OrderList *orderlist = stationOrderlist->Find(productid);
-		if (orderlist)
-		{
-			for (auto &order: *orderlist)
-			{
-				if (order->userid == userid)
-				{
-					list.Add(order);
-				}
-			}
-		}
+		TMap<FString, SQLiteField> &row = result.Rows[0].Fields;
+		item.orderid = row["orderid"].IntValue;
+		item.ordertype = row["ordertype"].IntValue;
+		item.productid = row["productid"].IntValue;
+		item.userid = row["userid"].IntValue;
+		item.stationid = row["stationid"].IntValue;
+		item.num = row["num"].IntValue;
+		item.price = row["price"].RealValue;
+		return true;
 	}
+	return false;
 }
-FOrderDataItem *UDataProcesser::GetProductOrderByPrice(const int32 productid, bool isHighest) {
-	FOrderDataItem *result = nullptr;
-	for (auto &station : OrderData)
+int32 UDataProcesser::GetSuitableStationByPrice(const int32 productid, bool isHighest, float &price) {
+	FString priceorder = isHighest ? TEXT("desc ") : TEXT("");
+	int32 ordertype = isHighest ? 1 : 0;
+	FString query_sql = FString::Printf(TEXT("select `stationid`,`price` from `ProductOrder`"
+		" where `productid` = %d and `ordertype`=%d order by `price` %slimit 1"),
+		productid, ordertype, *priceorder);
+	SQLiteResult result = SqliteLib->ExecuteQuery(query_sql);
+	if (result.Success&&result.Rows.Num()>0)
 	{
-		for (auto &orderlist: station.Value)
+		price = result.Rows[0].Fields["price"].RealValue;
+		return result.Rows[0].Fields["stationid"].IntValue;
+	}
+	return -1;
+}
+int32 UDataProcesser::CountOrderNum(const int32 productid, const int32 userid,
+	const int32 stationid) {
+	FString query_sql = FString::Printf(TEXT("select sum(num) as total from `ProductOrder`"
+		" where productid = %d and userid = %d and stationid = %d"),
+		productid, userid, stationid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(query_sql);
+	if (result.Success&&result.Rows.Num()>0)
+	{
+		SQLiteField &field = result.Rows[0].Fields["total"];
+		if (field.Type== SQLiteResultValueTypes::Integer)
 		{
-			for (auto &order: orderlist.Value)
+			return result.Rows[0].Fields["total"].IntValue;
+		}
+	}
+	return 0;
+}	
+int32 UDataProcesser::ChangeOrderPriceByUserStation(const int32 productid,
+	const int32 userid,	const int32 stationid, const float price) {
+	float delta_money = 0.0f;
+	FString delta_price_sql = FString::Printf(TEXT("select sum((%f-`price`)*`num`) as deltaprice from `ProductOrder`"
+		"where productid = %d and userid = %d and stationid = %d"), 
+		price, productid, userid, stationid);
+	SQLiteResult queryresult = SqliteLib->ExecuteQuery(delta_price_sql);
+	if (queryresult.Success&&queryresult.Rows.Num()>0)
+	{
+		SQLiteField &field = queryresult.Rows[0].Fields["deltaprice"];
+		if (field.Type == SQLiteResultValueTypes::Float)
+		{
+			delta_money = field.RealValue;
+			bool canupdateprice = false;
+			if (delta_money>0.0f)
 			{
-				if (result == nullptr||(isHighest&&result->price<order->price||
-					(!isHighest&&result->price>order->price)))
+				if (CostMoney(delta_money, userid))
 				{
-					result = order;
+					canupdateprice = true;
 				}
+			}
+			else
+			{
+				AddMoney(-delta_money,userid);
+				canupdateprice = true;
+			}
+			if (canupdateprice)
+			{
+				FString update_sql = FString::Printf(TEXT("update `ProductOrder`"
+					" set `price` = %f,`updatetime`=datetime('now') where productid = %d and userid = %d and stationid = %d"),
+					price, productid, userid, stationid);
+				int32 result = SqliteLib->ExecuteNoQuery(update_sql);
+
+				if (OnOrderListChanged.IsBound())
+				{
+					OnOrderListChanged.Broadcast(stationid, productid);
+				}
+				return result;
 			}
 		}
 	}
-	return result;
+	return 0;
 }
 UserList &UDataProcesser::GetUserData() {
 	return UserData;
@@ -513,20 +499,20 @@ int32 UDataProcesser::CreateNewUser(FUserDataItem &item) {
 	return i;
 }
 
-void UDataProcesser::RemoveOrder(FOrderDataItem *order) {
-	OnOrderListChanged.Broadcast(order->stationid, order->productid);
-
-	ProductOrderList *stationOrderlist = OrderData.Find(order->stationid);
-	OrderList *orderlist = stationOrderlist->Find(order->productid);
-	orderlist->Remove(order);
-	TArray<OrderRemoveEvent> *listeners = OrderRemoveListeners.Find(order);
-	if (listeners)
-	{
-		for (auto listener : *listeners)
-		{
-			listener(order);
-		}
-		OrderRemoveListeners.Remove(order);
-	}
-	delete order;
-}
+//void UDataProcesser::RemoveOrder(FOrderDataItem *order) {
+//	OnOrderListChanged.Broadcast(order->stationid, order->productid);
+//
+//	ProductOrderList *stationOrderlist = OrderData.Find(order->stationid);
+//	OrderList *orderlist = stationOrderlist->Find(order->productid);
+//	orderlist->Remove(order);
+//	TArray<OrderRemoveEvent> *listeners = OrderRemoveListeners.Find(order);
+//	if (listeners)
+//	{
+//		for (auto listener : *listeners)
+//		{
+//			listener(order);
+//		}
+//		OrderRemoveListeners.Remove(order);
+//	}
+//	delete order;
+//}
