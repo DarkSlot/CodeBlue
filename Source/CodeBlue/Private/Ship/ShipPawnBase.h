@@ -39,7 +39,7 @@ public:
 		bool AddCargo(int32 productid,int32 num);
 
 	UFUNCTION(BlueprintCallable, Category = Ship)
-		bool ReduceCargo(int32 productid, int32 num);
+	virtual	bool ReduceCargo(int32 productid, int32 num);
 
 	UFUNCTION(BlueprintCallable, Category = Ship)
 		TMap<int32, int32> &GetCargo();
