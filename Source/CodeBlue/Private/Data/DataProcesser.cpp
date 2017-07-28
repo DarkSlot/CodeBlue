@@ -172,6 +172,34 @@ void UDataProcesser::RemoveOrder(const int32 orderid) {
 		TEXT("delete from `ProductOrder`  where orderid = %d"), orderid);
 	SqliteLib->ExecuteNoQuery(remove_sql);
 }
+void UDataProcesser::CancelOrder(const int32 orderid) {
+	FString product_sql = FString::Printf(
+		TEXT("select * from `ProductOrder` where `orderid` =%d"),orderid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(product_sql);
+	if (result.Success&&result.Rows.Num()>0)
+	{
+		TMap<FString, SQLiteField> &row = result.Rows[0].Fields;
+		int ordertype = row["ordertype"].IntValue;
+		int productid = row["productid"].IntValue;
+		int userid = row["userid"].IntValue;
+		int stationid = row["stationid"].IntValue;
+		int ordernum = row["num"].IntValue;
+		float price = row["price"].RealValue;
+		if (ordertype == 1)//buy order
+		{
+			AddMoney(ordernum*price, userid);
+		}
+		else//sell order
+		{
+			AddProperty(productid, ordernum, userid, stationid);
+		}
+		RemoveOrder(orderid);
+		if (OnOrderListChanged.IsBound())
+		{
+			OnOrderListChanged.Broadcast(stationid, productid);
+		}
+	}
+}
 
 void UDataProcesser::UpdateOrderNum(const int32 orderid, const int32 num) {
 	FString update_num_sql = FString::Printf(
@@ -209,7 +237,12 @@ bool UDataProcesser::AddProperty(const int32 productid, const int32 num,
 		), userid, stationid, productid, num);
 		affected = SqliteLib->ExecuteNoQuery(add_property_sql);
 	}
-	return (affected ==1);
+	bool result = (affected == 1);
+	if (result&&FOnPropertyChanged.IsBound())
+	{
+		FOnPropertyChanged.Broadcast(stationid, productid, userid);
+	}
+	return result;
 }
 
 bool UDataProcesser::ReduceProperty(const int32 productid, const int32 num,
@@ -218,7 +251,31 @@ bool UDataProcesser::ReduceProperty(const int32 productid, const int32 num,
 		" where `userid` = %d and `stationid` = %d and `productid` = %d and `num`>= %d"
 	), num, userid, stationid, productid, num);
 	int32 affected = SqliteLib->ExecuteNoQuery(update_property_sql);
-	return (affected == 1);
+	bool result = (affected == 1);
+	if (result&&FOnPropertyChanged.IsBound())
+	{
+		FOnPropertyChanged.Broadcast(stationid, productid, userid);
+	}
+	return result;
+}
+
+TMap<int32, int32> UDataProcesser::GetStationProperty(const int32 userid, const int32 stationid) {
+	TMap<int32, int32> PropertyMap;
+	FString property_sql = FString::Printf(
+		TEXT("select `productid`,`num` from Property"
+			" where `userid` =%d and `stationid`=%d and `num`> 0"), userid,
+		stationid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(property_sql);
+	if (result.Success&&result.Rows.Num()>0)
+	{
+		int32 rownum = result.Rows.Num();
+		for (int32 i = 0; i < rownum; i++)
+		{
+			TMap<FString, SQLiteField> &row = result.Rows[i].Fields;
+			PropertyMap.Add(row["productid"].IntValue, row["num"].IntValue);
+		}
+	}
+	return PropertyMap;
 }
 
 bool UDataProcesser::AddMoney(const float num, const int32 userid) {
@@ -230,6 +287,9 @@ bool UDataProcesser::AddMoney(const float num, const int32 userid) {
 	if (useritem)
 	{
 		useritem->money += num;
+		if (OnUserMoneyChanged.IsBound()) {
+			OnUserMoneyChanged.Broadcast(userid, useritem->money);
+		}
 		return true;
 	}
 	return false;
@@ -247,6 +307,9 @@ bool UDataProcesser::CostMoney(const float num, const int32 userid) {
 			return false;
 		}
 		useritem->money -= num;
+		if (OnUserMoneyChanged.IsBound()) {
+			OnUserMoneyChanged.Broadcast(userid, useritem->money);
+		}
 		return true;
 	}
 	return false;
@@ -361,7 +424,7 @@ bool UDataProcesser::GetProductOrder(const int32 productid, const int32 stationi
 			int32 num = row["num"].IntValue;
 			float price = row["price"].RealValue;
 			FString updatetime = row["updatetime"].StringValue;
-			list.Add(FOrderDataItem(ordertype, pid,userid, sid,num,price, updatetime));
+			list.Add(FOrderDataItem(orderid,ordertype, pid,userid, sid,num,price, updatetime));
 		}
 		return true;
 	}
@@ -371,7 +434,7 @@ bool UDataProcesser::GetProductOrderByPrice(const int32 productid,
 	const int32 stationid, bool isHighest, FOrderDataItem &item) {
 	FString priceorder = isHighest ? TEXT("desc ") : TEXT("");
 	int32 ordertype = isHighest ? 1 : 0;
-	FString query_sql = FString::Printf(TEXT("select `stationid` from `ProductOrder`"
+	FString query_sql = FString::Printf(TEXT("select * from `ProductOrder`"
 		" where `productid` = %d and `stationid`=%d and `ordertype`=%d order by `price` %slimit 1"),
 		productid, stationid, ordertype,*priceorder);
 	SQLiteResult result = SqliteLib->ExecuteQuery(query_sql);
@@ -385,6 +448,32 @@ bool UDataProcesser::GetProductOrderByPrice(const int32 productid,
 		item.stationid = row["stationid"].IntValue;
 		item.num = row["num"].IntValue;
 		item.price = row["price"].RealValue;
+		return true;
+	}
+	return false;
+}
+
+bool UDataProcesser::GetProductOrderByUser(const int32 productid, const int32 stationid,
+	const int32  userid, OrderList &list) {
+	FString query_sql = FString::Printf(TEXT("select * from `ProductOrder`"
+		" where productid = %d and stationid = %d and `userid` = %d"), productid, stationid, userid);
+	SQLiteResult result = SqliteLib->ExecuteQuery(query_sql);
+	if (result.Success)
+	{
+		int32 numrow = result.Rows.Num();
+		for (int32 i = 0; i < numrow; i++)
+		{
+			TMap<FString, SQLiteField> &row = result.Rows[i].Fields;
+			int32 orderid = row["orderid"].IntValue;
+			int32 ordertype = row["ordertype"].IntValue;
+			//int32 pid = row["productid"].IntValue;
+			//int32 userid = row["userid"].IntValue;
+			//int32 sid = row["stationid"].IntValue;
+			int32 num = row["num"].IntValue;
+			float price = row["price"].RealValue;
+			FString updatetime = row["updatetime"].StringValue;
+			list.Add(FOrderDataItem(orderid,ordertype, productid, userid, stationid, num, price, updatetime));
+		}
 		return true;
 	}
 	return false;

@@ -16,7 +16,7 @@ void UMarketBlueprintLibrary::SellProduct(const UObject *WorldContext,
 	const int32 productid, const float price, const int32 num,
 	const int32 userid, const int32 stationid) {
 	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(WorldContext));
-	GameInstance->DataProcesser->BuyProduct(productid, price, num, userid, stationid);
+	GameInstance->DataProcesser->SellProduct(productid, price, num, userid, stationid);
 }
 FString UMarketBlueprintLibrary::VerifyFloatString(const FString &Str) {
 	FString result(TEXT(""));

@@ -9,23 +9,28 @@ AShipPawnBase::AShipPawnBase()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	Speed = 100.0f;
+	MaxSpeed = 1000.0f;
+	Acceleration = 500.0f;
 	Agility = 50.0f;
 	bIsFiring = false;
 	FireTimer = 0.0f;
 	HitPoint = 100.0f;
+	HitPointMax = 100.0f;
 
-	//ShipMovement = CreateDefaultSubobject<UAIShipMovementComponent>(TEXT("ShipMovement"));
-	//if (ShipMovement)
-	//{
-	//	ShipMovement->UpdatedComponent = GetRootComponent();
-	//}
+	ShipMovement = CreateDefaultSubobject<UShipMovementComponent>(TEXT("ShipMovement"));
+	if (ShipMovement)
+	{
+		ShipMovement->UpdatedComponent = GetRootComponent();
+	}
 }
 
 // Called when the game starts or when spawned
 void AShipPawnBase::BeginPlay()
 {
 	Super::BeginPlay();
+	ShipMovement->MaxSpeed = MaxSpeed;
+	ShipMovement->Acceleration = Acceleration;
+	ShipMovement->Deceleration = Acceleration *2.0f;
 }
 
 // Called every frame
@@ -48,6 +53,27 @@ void AShipPawnBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+void AShipPawnBase::FaceRotation(FRotator NewControlRotation, float DeltaTime) {
+	FRotator rot = GetActorRotation();
+	if (rot.Equals(NewControlRotation))
+	{
+		return;
+	}
+	FQuat currentquat= GetActorRotation().Quaternion();
+	FQuat targetquat = NewControlRotation.Quaternion();
+	float max_angular_mov = Agility/180*3.1415926f * DeltaTime;
+	float target_move_angular = currentquat.AngularDistance(targetquat);
+
+	if (target_move_angular<= max_angular_mov)
+	{
+		SetActorRotation(NewControlRotation);
+	}
+	else
+	{
+		FQuat actualquat = FQuat::Slerp(currentquat, targetquat, max_angular_mov / target_move_angular);
+		SetActorRotation(actualquat);
+	}
 }
 void AShipPawnBase::StartFireWeapon() {
 	bIsFiring = true;
@@ -94,6 +120,9 @@ bool AShipPawnBase::ReduceCargo(int32 productid, int32 num) {
 AShipPawnBase::CargoMap &AShipPawnBase::GetCargo() {
 	return Cargo;
 }
+bool AShipPawnBase::ChangeZoomView_Implementation(float ZoomValue) {
+	return true;
+}
 void AShipPawnBase::FireWeapon() {
 	UObject* tAsset = LoadObject<UClass>(nullptr, TEXT("/Game/Weapons/Blueprint/Bullet.Bullet_C"));
 	if (!tAsset) return;
@@ -112,7 +141,11 @@ void AShipPawnBase::FireWeapon() {
 }
 float AShipPawnBase::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 	class AController* EventInstigator, AActor* DamageCauser) {
+	//Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	HitPoint -= DamageAmount;
+	if (OnHitpointChanged.IsBound()) {
+		OnHitpointChanged.Broadcast(HitPoint,HitPointMax);
+	}
 	if (HitPoint<=0.0f)
 	{
 		BeingDestroyed();
@@ -135,6 +168,8 @@ void AShipPawnBase::BeingDestroyed() {
 		wreck->AddCargo(item.Key, item.Value);
 	}
 	//ABulletBase *bullet = Cast<ABulletBase>(GetWorld()->SpawnActor(bp, &trans, parameter));
-
+	DestroyShip();
+}
+void AShipPawnBase::DestroyShip_Implementation() {
 	Destroy();
 }

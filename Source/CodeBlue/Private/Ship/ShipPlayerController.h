@@ -42,6 +42,10 @@ protected:
 	static const FName MoveForwardBinding;
 	static const FName TurnRightBinding;
 
+	float DefaultArmLength;
+
 	void OnFirePressed();
 	void OnFireReleased();
+	void OnZoomIn();
+	void OnZoomOut();
 };

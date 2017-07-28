@@ -3,7 +3,7 @@
 #pragma once
 
 #include "GameFramework/Pawn.h"
-#include "AIShipMovementComponent.h"
+#include "ShipMovementComponent.h"
 #include "ShipPawnBase.generated.h"
 
 UCLASS()
@@ -19,6 +19,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHitpointChanged, const float, hitpoint, const float, hitpointmax);
+
 	//<productid,num>
 	typedef TMap<int32, int32> CargoMap;
 
@@ -27,6 +29,8 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void FaceRotation(FRotator NewControlRotation, float DeltaTime = 0.f) override;
 
 
 	UFUNCTION(BlueprintCallable, Category = Ship)
@@ -43,25 +47,39 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Ship)
 		TMap<int32, int32> &GetCargo();
+	
+	UFUNCTION(BlueprintNativeEvent, Category = Ship)
+	bool ChangeZoomView(float ZoomValue);
 		
 	/** The speed of this ship. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ship)
-	float Speed;
+	float MaxSpeed;
+
+	/** The Agility of this ship. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ship)
+		float Acceleration;
 
 	/** The Agility of this ship. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ship)
 	float Agility;
-	
-	///** The Agility of this ship. */
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ship)
-	//UAIShipMovementComponent *ShipMovement;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Ship)
+	float HitPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ship)
+	float HitPointMax;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ship)
+	UShipMovementComponent *ShipMovement;
+
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category = "Data")
+	FOnHitpointChanged OnHitpointChanged;
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ship)
 	bool bIsFiring;
 
 	float FireTimer;
 
-	float HitPoint;
 
 	CargoMap Cargo;
 
@@ -71,4 +89,8 @@ protected:
 		class AController* EventInstigator, AActor* DamageCauser) override;
 
 	void BeingDestroyed();
+
+	UFUNCTION(BlueprintNativeEvent, Category = Ship)
+	void DestroyShip();
+
 };

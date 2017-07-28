@@ -11,41 +11,25 @@
 void UTradeWindowBase::UpdateTradeWindow(const int32 productid, const int32 stationid, const bool IsBuyWindow) {
 	bIsBuyWindow = IsBuyWindow;
 	ProductId = productid;
+	StationId = stationid;
 	int32 ordertype = IsBuyWindow ? 0 : 1;
 	auto CompareFun = [ordertype](float a, float b) {return (ordertype ==0)?(a < b):(a>b); };
 
 	UGMGameInstance *GameInstance = Cast<UGMGameInstance>(UGameplayStatics::GetGameInstance(this));
 	//OrderList orderlist;
 	FOrderDataItem item;
-	if (GameInstance->DataProcesser->GetProductOrderByPrice(productid, stationid, IsBuyWindow, item)) {
+	if (GameInstance->DataProcesser->GetProductOrderByPrice(productid, stationid, !IsBuyWindow, item)) {
 		InitTradeWindow(ProductLocalizationList::FindProductName(
 			GameInstance->DataProcesser->GetProductName(productid)),
 			item.price);
 	}
-	//FOrderDataItem *MatchItem = nullptr;
-	//if (orderlist.Num()>0)
-	//{
-	//	for (auto order : orderlist)
-	//	{
-	//		if (order->ordertype == ordertype)
-	//		{
-	//			if (!MatchItem)
-	//			{
-	//				MatchItem = order;
-	//			}
-	//			else if (CompareFun(order->price, MatchItem->price))
-	//			{
-	//				MatchItem = order;
-	//			}
-	//		}
-	//	}
-	//}
-	//if (MatchItem)
-	//{
-	//	InitTradeWindow(ProductLocalizationList::FindProductName(
-	//		GameInstance->DataProcesser->GetProductName(MatchItem->productid)),
-	//		MatchItem->price);
-	//}
+	else
+	{
+		FProductInfoItem *infoitem = GameInstance->DataProcesser->GetProductInfo()[productid];
+		InitTradeWindow(ProductLocalizationList::FindProductName(
+			infoitem->productname),
+			infoitem->baseprice);
+	}
 }
 
 

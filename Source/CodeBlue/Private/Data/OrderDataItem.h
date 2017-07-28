@@ -51,9 +51,9 @@ struct FOrderDataItem
 		num(0),
 		price(0.0f) {}
 
-	FOrderDataItem(int32 type, int32 product, int32 user, int32 station, int32 stocknum, float tradeprice,FString time)
+	FOrderDataItem(int32 oid,int32 type, int32 product, int32 user, int32 station, int32 stocknum, float tradeprice,FString time)
 		:unsaved(true),
-		orderid(0),
+		orderid(oid),
 		ordertype(type),
 		productid(product),
 		userid(user),

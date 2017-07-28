@@ -9,11 +9,12 @@ ACodeBlueGameModeBase::ACodeBlueGameModeBase() {
 	PlayerControllerClass = AShipPlayerController::StaticClass();
 
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Ships/BaseShip/BaseShip"));
-	if (PlayerPawnBPClass.Class != NULL)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
+	DefaultPawnClass = nullptr;
+	//static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Ships/BaseShip/BaseShip"));
+	//if (PlayerPawnBPClass.Class != NULL)
+	//{
+	//	DefaultPawnClass = PlayerPawnBPClass.Class;
+	//}
 }
 
 

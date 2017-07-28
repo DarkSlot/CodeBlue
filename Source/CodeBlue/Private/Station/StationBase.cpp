@@ -81,17 +81,26 @@ void AStationBase::Tick(float DeltaTime)
 
 void AStationBase::DealFoodShortage(int32 starvinglvl) {
 	float price = (starvinglvl*0.1f + 1.0f)*
-		DataProcesser->GetProductInfo()[2]->baseprice;
-
-	int32 totalOrderNum = DataProcesser->CountOrderNum(2,StationId,StationId);
-	if (totalOrderNum<FoodCost * 120)
-	{
-		DataProcesser->BuyProduct(2, price,
-			FoodCost * 120, StationId, StationId);
-	}
+		DataProcesser->GetProductInfo()[2]->baseprice;	
 	if (LastStarvingLevel!= starvinglvl)
 	{
 		LastStarvingLevel = starvinglvl;
-		DataProcesser->ChangeOrderPriceByUserStation(2, StationId, StationId, price);
+		OrderList list;
+		DataProcesser->GetProductOrderByUser(2, StationId, StationId, list);
+		for (auto &item:list)
+		{
+			DataProcesser->CancelOrder(item.orderid);
+		}
+		DataProcesser->BuyProduct(2, price,
+			FoodCost * 120, StationId, StationId);
+	}
+	else
+	{
+		int32 totalOrderNum = DataProcesser->CountOrderNum(2, StationId, StationId);
+		if (totalOrderNum<FoodCost * 120)
+		{
+			DataProcesser->BuyProduct(2, price,
+				FoodCost * 120, StationId, StationId);
+		}
 	}
 }

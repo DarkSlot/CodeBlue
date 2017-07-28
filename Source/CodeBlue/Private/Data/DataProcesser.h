@@ -15,12 +15,14 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class UDataProcesser : public UObject
 {
 	GENERATED_BODY()
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnOrderListChanged, const int32, StationId, const int32, ProductId);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUserMoneyChanged, const int32, UserId, const float, Money);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnPropertyChanged, const int32, StationId, const int32, ProductId,const int32, UserId);
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void BuyProduct(const int32 productid, const float price, const int32 num,
@@ -37,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void RemoveOrder(const int32 orderid);
 
+	UFUNCTION(BlueprintCallable, Category = "Data")
+	void CancelOrder(const int32 orderid);
+
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	void UpdateOrderPrice(const int32 orderid,const float price);
@@ -48,6 +53,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	bool ReduceProperty(const int32 productid, const int32 num,
 			const int32 userid, const int32 stationid);
+
+	UFUNCTION(BlueprintCallable, Category = Ship)
+	TMap<int32, int32> GetStationProperty(const int32 userid, const int32 stationid);
 
 	UFUNCTION(BlueprintCallable, Category = "Data")
 	bool AddMoney(const float num,const int32 userid);
@@ -65,13 +73,21 @@ public:
 		UTexture2D *GetProductIcon(const int32 productid);
 
 	UPROPERTY(BlueprintCallable,BlueprintAssignable, Category = "Data")
-	FOnOrderListChanged OnOrderListChanged;	
+	FOnOrderListChanged OnOrderListChanged;
+
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category = "Data")
+	FOnUserMoneyChanged OnUserMoneyChanged;
+
+	UPROPERTY(BlueprintCallable, BlueprintAssignable, Category = "Data")
+	FOnPropertyChanged FOnPropertyChanged;
 	
 	void Init();
 
 	bool GetProductOrder(const int32 productid, const int32 stationid, OrderList &list);
 	bool GetProductOrderByPrice(const int32 productid, const int32 stationid,
 		bool isHighest, FOrderDataItem &item);
+	bool GetProductOrderByUser(const int32 productid, const int32 stationid,
+		const int32  userid, OrderList &list);
 	//get the highest buyer station or the lowest seller station
 	int32 GetSuitableStationByPrice(const int32 productid, bool isHighest,float &price);
 	//sum the num of orders
