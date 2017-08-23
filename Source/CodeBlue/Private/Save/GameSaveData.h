@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "ShipSaveDataItem.h"
 #include "GameSaveData.generated.h"
 
 /**
@@ -14,7 +15,8 @@ class UGameSaveData : public USaveGame
 {
 	GENERATED_BODY()
 	
-	
-	
+public:
+	UPROPERTY(BlueprintReadWrite, Category = "Save")
+	TArray<FShipSaveDataItem> Ships;
 	
 };
